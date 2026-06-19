@@ -1,0 +1,52 @@
+{
+  "name": "tipejos",
+  "version": "0.1.0",
+  "description": "Mascotas de escritorio con los clásicos asistentes de Microsoft Office (Clippy, Merlin, Rover, El Genio...)",
+  "main": "src/main.js",
+  "scripts": {
+    "start": "electron .",
+    "setup": "node scripts/make-icon.js && node scripts/download-agents.js",
+    "download-assets": "node scripts/download-agents.js",
+    "defringe": "node scripts/defringe.js",
+    "make-icon": "node scripts/make-icon.js",
+    "dist": "electron-builder"
+  },
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "electron": "^33.2.0",
+    "electron-builder": "^25.1.8"
+  },
+  "build": {
+    "appId": "com.tipejos.desktoppets",
+    "productName": "Tipejos",
+    "copyright": "Tipejos",
+    "files": [
+      "src/**/*",
+      "assets/**/*"
+    ],
+    "directories": {
+      "output": "dist"
+    },
+    "compression": "store",
+    "win": {
+      "icon": "assets/icon.ico",
+      "target": [
+        { "target": "portable", "arch": ["x64"] }
+      ]
+    },
+    "nsis": {
+      "oneClick": true,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": false,
+      "installerIcon": "assets/icon.ico",
+      "uninstallerIcon": "assets/icon.ico",
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "Tipejos"
+    },
+    "portable": {
+      "artifactName": "Tipejos-portable.exe"
+    }
+  }
+}

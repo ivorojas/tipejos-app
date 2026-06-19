@@ -1,0 +1,300 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <title>Tipejos — Ajustes</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: #12121e;
+      color: #d0d0e8;
+      font-family: 'Segoe UI', Tahoma, sans-serif;
+      font-size: 13px;
+      overflow-y: auto;
+      padding: 0 0 20px;
+    }
+
+    /* ── Header ─────────────────────────────────────────── */
+    header {
+      background: #1a1a30;
+      border-bottom: 1px solid #2a2a48;
+      padding: 14px 20px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+    header h1 { font-size: 16px; font-weight: 600; color: #fff; }
+    header .version { font-size: 11px; color: #666; margin-left: auto; }
+
+    /* ── Secciones ───────────────────────────────────────── */
+    .section {
+      background: #1a1a30;
+      border: 1px solid #2a2a48;
+      border-radius: 10px;
+      margin: 14px 16px 0;
+      padding: 14px 16px;
+    }
+    .section h2 {
+      font-size: 12px;
+      font-weight: 700;
+      color: #8888cc;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 12px;
+    }
+
+    /* ── Mascotas activas ─────────────────────────────────── */
+    #active-pets { display: flex; flex-wrap: wrap; gap: 8px; min-height: 36px; }
+    .active-chip {
+      display: flex; align-items: center; gap: 6px;
+      background: #252548; border: 1px solid #3a3a70;
+      border-radius: 20px; padding: 4px 10px;
+      font-size: 12px;
+    }
+    .active-chip button {
+      background: none; border: none; color: #ff6b6b;
+      cursor: pointer; font-size: 14px; line-height: 1;
+      padding: 0; margin-left: 2px;
+    }
+    .active-chip button:hover { color: #ff3333; }
+    #no-pets { color: #666; font-style: italic; }
+
+    /* ── Grilla de personajes ────────────────────────────── */
+    #char-grid {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 8px;
+    }
+    .char-card {
+      background: #12121e;
+      border: 2px solid #2a2a48;
+      border-radius: 8px;
+      padding: 6px;
+      text-align: center;
+      cursor: pointer;
+      transition: border-color 0.15s, background 0.15s;
+    }
+    .char-card:hover { border-color: #6666dd; background: #1e1e3a; }
+    .char-preview {
+      width: 100%;
+      height: 60px;
+      background-repeat: no-repeat;
+      background-position: 0 0;
+      background-size: auto;
+      image-rendering: pixelated;
+      border-radius: 4px;
+      overflow: hidden;
+    }
+    .char-name {
+      margin-top: 4px;
+      font-size: 10px;
+      font-weight: 600;
+      color: #aaa;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    /* ── Controles ───────────────────────────────────────── */
+    .row {
+      display: flex; align-items: center;
+      gap: 10px; margin-bottom: 10px;
+    }
+    .row:last-child { margin-bottom: 0; }
+    .row label { min-width: 120px; color: #aaa; }
+    .row .val   { min-width: 36px; text-align: right; color: #ccc; font-weight: 600; }
+
+    input[type=range] {
+      flex: 1;
+      -webkit-appearance: none;
+      height: 4px;
+      background: #2a2a48;
+      border-radius: 2px;
+      outline: none;
+    }
+    input[type=range]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 14px; height: 14px;
+      border-radius: 50%;
+      background: #7070ee;
+      cursor: pointer;
+    }
+    input[type=range]::-webkit-slider-thumb:hover { background: #9090ff; }
+
+    input[type=checkbox] { accent-color: #7070ee; width: 15px; height: 15px; cursor: pointer; }
+    .check-row { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; cursor: pointer; }
+    .check-row:last-child { margin-bottom: 0; }
+    .check-row label { cursor: pointer; color: #ccc; }
+
+    /* ── Modo de comportamiento ──────────────────────────── */
+    .modes { display: flex; gap: 8px; }
+    .mode-btn {
+      flex: 1;
+      background: #12121e; border: 2px solid #2a2a48;
+      border-radius: 8px; padding: 8px 4px;
+      cursor: pointer; text-align: center; transition: 0.15s;
+      color: #888; font-size: 12px;
+    }
+    .mode-btn.active { border-color: #7070ee; color: #d0d0ff; background: #1e1e40; }
+    .mode-btn:hover:not(.active) { border-color: #4a4a80; color: #aaa; }
+    .mode-icon { font-size: 20px; display: block; margin-bottom: 4px; }
+
+    /* ── Botones de acción ───────────────────────────────── */
+    .actions {
+      display: flex; gap: 10px;
+      padding: 16px 16px 0;
+    }
+    .btn {
+      flex: 1; padding: 10px;
+      border: none; border-radius: 8px;
+      font-size: 13px; font-weight: 600;
+      cursor: pointer; transition: 0.15s;
+    }
+    .btn-primary { background: #5555cc; color: #fff; }
+    .btn-primary:hover { background: #6666ee; }
+    .btn-secondary { background: #2a2a48; color: #ccc; }
+    .btn-secondary:hover { background: #333358; }
+
+    /* ── Atajos de teclado ───────────────────────────────── */
+    .shortcuts { display: grid; grid-template-columns: auto 1fr; gap: 4px 12px; }
+    kbd {
+      background: #252548; border: 1px solid #3a3a70; border-radius: 4px;
+      padding: 2px 6px; font-size: 11px; font-family: monospace; color: #bbb;
+    }
+    .shortcut-desc { color: #888; font-size: 12px; align-self: center; }
+  </style>
+</head>
+<body>
+  <header>
+    <span style="font-size:20px">🐾</span>
+    <h1>Tipejos — Ajustes</h1>
+    <span class="version">v0.1</span>
+  </header>
+
+  <!-- Mascotas activas -->
+  <div class="section">
+    <h2>Mascotas activas</h2>
+    <div id="active-pets"><span id="no-pets">No hay mascotas. Agregá una abajo.</span></div>
+  </div>
+
+  <!-- Agregar mascota -->
+  <div class="section">
+    <h2>Agregar mascota</h2>
+    <input type="search" id="char-search" placeholder="🔍  Buscar personaje..." autocomplete="off"
+      style="width:100%; padding:8px 10px; background:#12121e; border:1px solid #2a2a48;
+             border-radius:8px; color:#d0d0e8; font-size:13px; margin-bottom:10px; outline:none;">
+    <div id="no-results" style="display:none; color:#666; font-style:italic; padding:6px 0;">
+      No hay personajes que coincidan.
+    </div>
+    <div id="char-grid"></div>
+  </div>
+
+  <!-- Apariencia -->
+  <div class="section">
+    <h2>Apariencia</h2>
+    <div class="row">
+      <label>Tamaño</label>
+      <input type="range" id="scale" min="0.5" max="3" step="0.1" value="1">
+      <span class="val" id="scale-val">1.0×</span>
+    </div>
+    <div class="row">
+      <label>Opacidad</label>
+      <input type="range" id="opacity" min="0.1" max="1" step="0.05" value="1">
+      <span class="val" id="opacity-val">100%</span>
+    </div>
+  </div>
+
+  <!-- Sonido -->
+  <div class="section">
+    <h2>Sonido</h2>
+    <div class="check-row">
+      <input type="checkbox" id="sound-on">
+      <label for="sound-on">Activar sonidos</label>
+    </div>
+    <div class="row">
+      <label>Volumen</label>
+      <input type="range" id="volume" min="0" max="1" step="0.05" value="0.5">
+      <span class="val" id="volume-val">50%</span>
+    </div>
+  </div>
+
+  <!-- Comportamiento -->
+  <div class="section">
+    <h2>Comportamiento</h2>
+
+    <div class="row" style="flex-direction:column; align-items:flex-start; gap:8px">
+      <span style="color:#aaa; font-size:12px">Modo de animaciones</span>
+      <div class="modes" style="width:100%">
+        <div class="mode-btn" data-mode="calm">
+          <span class="mode-icon">😴</span>Tranquilo
+        </div>
+        <div class="mode-btn active" data-mode="normal">
+          <span class="mode-icon">🙂</span>Normal
+        </div>
+        <div class="mode-btn" data-mode="playful">
+          <span class="mode-icon">🤪</span>Payaso
+        </div>
+      </div>
+    </div>
+
+    <div class="row" style="margin-top:10px">
+      <label>Frecuencia</label>
+      <input type="range" id="anim-freq" min="0.25" max="3" step="0.25" value="1">
+      <span class="val" id="freq-val">Normal</span>
+    </div>
+
+    <div class="check-row" style="margin-top:10px">
+      <input type="checkbox" id="wander">
+      <label for="wander">🚶 Caminar autónomamente</label>
+    </div>
+    <div class="check-row">
+      <input type="checkbox" id="time-react" checked>
+      <label for="time-react">🕐 Reaccionar al horario (saludos mañana/noche)</label>
+    </div>
+    <div class="check-row">
+      <input type="checkbox" id="mouse-react" checked>
+      <label for="mouse-react">🖱️ Reaccionar cuando el mouse se acerca</label>
+    </div>
+    <div class="check-row">
+      <input type="checkbox" id="speech-bubbles" checked>
+      <label for="speech-bubbles">💬 Mostrar globos de diálogo</label>
+    </div>
+  </div>
+
+  <!-- Sistema -->
+  <div class="section">
+    <h2>Sistema</h2>
+    <div class="check-row">
+      <input type="checkbox" id="startup">
+      <label for="startup">🚀 Arrancar con Windows</label>
+    </div>
+  </div>
+
+  <!-- Atajos de teclado -->
+  <div class="section">
+    <h2>Atajos de teclado globales</h2>
+    <div class="shortcuts">
+      <kbd>Ctrl+Shift+T</kbd><span class="shortcut-desc">Mostrar / ocultar todas las mascotas</span>
+      <kbd>Ctrl+Shift+N</kbd><span class="shortcut-desc">Agregar nueva mascota aleatoria</span>
+      <kbd>Ctrl+Shift+S</kbd><span class="shortcut-desc">Abrir esta ventana de ajustes</span>
+    </div>
+    <div style="margin-top:10px; color:#555; font-size:11px">
+      Doble clic en el muñequito → animación divertida &nbsp;|&nbsp;
+      Clic derecho → menú contextual &nbsp;|&nbsp;
+      Triple clic → easter egg 🥚
+    </div>
+  </div>
+
+  <!-- Acciones -->
+  <div class="actions">
+    <button class="btn btn-primary"   id="btn-apply">Aplicar cambios</button>
+    <button class="btn btn-secondary" id="btn-close">Cerrar</button>
+  </div>
+
+  <script src="settings.js"></script>
+</body>
+</html>

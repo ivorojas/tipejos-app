@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta http-equiv="Content-Security-Policy"
+        content="default-src 'self' 'unsafe-inline' data: file:; img-src 'self' data: file:; media-src 'self' data: file:;" />
+  <title>Tipejos</title>
+  <style>
+    html, body {
+      margin: 0; padding: 0;
+      width: 100%; height: 100%;
+      background: transparent;
+      overflow: hidden;
+      pointer-events: none;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+
+    #stage { position: absolute; inset: 0; }
+
+    /* Las capas del sprite se posicionan a BUBBLE_PAD px del tope (ver renderer.js). */
+    .pet-overlay {
+      position: absolute;
+      left: 0;
+      background-repeat: no-repeat;
+      pointer-events: none;
+      image-rendering: pixelated;   /* escala nítida, sin blur */
+    }
+
+    /* Zona de arrastre encima del sprite. */
+    #hit {
+      position: absolute;
+      left: 0;
+      z-index: 100;
+      pointer-events: auto;
+      cursor: grab;
+    }
+    #hit.dragging { cursor: grabbing; }
+
+    /* Globo de diálogo sobre el sprite. */
+    #bubble {
+      position: absolute;
+      top: 4px;
+      left: 4px;
+      right: 4px;
+      min-height: 52px;
+      max-height: 72px;
+      background: #fffef0;
+      border: 2px solid #333;
+      border-radius: 10px;
+      padding: 6px 10px;
+      font-family: 'Segoe UI', Tahoma, sans-serif;
+      font-size: 11px;
+      line-height: 1.35;
+      color: #222;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      pointer-events: none;
+      z-index: 200;
+      opacity: 0;
+      transition: opacity 0.25s ease;
+      box-shadow: 1px 2px 4px rgba(0,0,0,0.25);
+      overflow: hidden;
+    }
+    #bubble.visible { opacity: 1; }
+
+    /* Pequeño triángulo apuntando hacia abajo (hacia el muñequito). */
+    #bubble::after {
+      content: '';
+      position: absolute;
+      bottom: -12px;
+      left: 50%;
+      transform: translateX(-50%);
+      border: 6px solid transparent;
+      border-top-color: #333;
+    }
+    #bubble::before {
+      content: '';
+      position: absolute;
+      bottom: -9px;
+      left: 50%;
+      transform: translateX(-50%);
+      border: 5px solid transparent;
+      border-top-color: #fffef0;
+      z-index: 1;
+    }
+  </style>
+</head>
+<body>
+  <div id="stage">
+    <div id="bubble"><span id="bubble-text"></span></div>
+    <div id="hit"></div>
+  </div>
+  <script src="renderer.js"></script>
+</body>
+</html>
