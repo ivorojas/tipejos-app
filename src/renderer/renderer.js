@@ -271,6 +271,8 @@ function startLife() {
     : agentData.animations['Greeting'] ? 'Greeting' : null;
   if (intro) playAnimation(intro, loopIdle);
   else loopIdle();
+  // Saludo al aparecer
+  if (speechBubbles) setTimeout(() => showCategoryBubble('greeting'), 700);
 }
 
 function loopIdle() {
@@ -300,22 +302,25 @@ function loopIdle() {
 }
 
 // ── Globo de diálogo ─────────────────────────────────────────────────────────
-const PHRASES = {
-  Clippy:  ['¿Parece que estás escribiendo una carta. ¿Necesitas ayuda?',
-             '¡Hola! Soy Clippy. 📎', '¿Puedo ayudarte en algo?', '¡Buen trabajo!'],
-  Merlin:  ['¡Abracadabra! ✨', 'Las estrellas me dicen que hoy será tu día. 🔮',
-             '¡El conocimiento es poder!'],
-  Bonzi:   ['¡Hola amigo! 🍌', 'Déjame mostrarte algo INCREÍBLE...', '¡BONZI BUDDY! 💜'],
-  Rover:   ['¡Guau! 🐾', '*menea la cola*', '¡Encontré algo interesante!'],
-  Peedy:   ['¡Hola! ¡Hola! 🦜', '¡Polly quiere una galleta!', '*aletea*'],
-  Genius:  ['Un momento... estoy calculando... 🧮', '¡Eureka!', 'Según mis datos...'],
-  Genie:   ['¡Tu deseo es una orden! 🧞', '¡Se te conceden tres deseos!'],
-  Links:   ['*purr* 🐱', 'Miau...', '*se estira y bosteza*'],
-  Rocky:   ['...', '(soy una roca 🪨)', '*muy quieto*'],
-  F1:      ['¡VROOM! 🏎️', '¡A toda velocidad!', '¡Semáforo en verde!'],
+// Frases por personaje y categoría (window.PHRASES_DATA viene de phrases.js).
+const ALL_PHRASES = (typeof window !== 'undefined' && window.PHRASES_DATA) || {};
+const GENERIC = {
+  idle:     ['¿Todo bien por ahí?', '¿Cuándo es la próxima pausa? ☕', '¡Buen trabajo!',
+             '¿Seguís ahí?', '*bosteza*', '¡Ya casi es viernes! 🎉', 'Hmm...'],
+  greeting: ['¡Hola, che!', 'Buenas, ¿cómo andás?', '¡Acá estoy!'],
+  click:    ['¡Ey! ¿Qué hacés?', '¿Me tocaste, posta?', 'Dale, tranqui.'],
+  morning:  ['¡Buenos días! ☀️', '¡Arriba, che!'],
+  night:    ['Es tarde, andá a dormir. 🌙', 'A la cama, dale.'],
 };
-const GENERIC = ['¿Todo bien por ahí?', '...', '¿Cuándo es la próxima pausa? ☕',
-  '¡Buen trabajo!', '¿Sigues ahí?', '*bosteza*', '¡Ya casi es viernes! 🎉', 'Hmm...'];
+
+// Devuelve la lista de frases de una categoría para el personaje actual,
+// cayendo a las genéricas si el personaje no tiene esa categoría.
+function phrasesFor(category) {
+  const set = ALL_PHRASES[currentCharName];
+  const list = set && set[category] && set[category].length ? set[category] : GENERIC[category];
+  return list || GENERIC.idle;
+}
+function pick(list) { return list[Math.floor(Math.random() * list.length)]; }
 
 let bubbleTimer = null;
 function showBubble(text, duration = 4500) {
@@ -326,21 +331,19 @@ function showBubble(text, duration = 4500) {
   bubbleTimer = setTimeout(() => bubbleEl.classList.remove('visible'), duration);
 }
 
-function showRandomBubble() {
-  const pool = [...(PHRASES[currentCharName] || []), ...GENERIC];
-  showBubble(pool[Math.floor(Math.random() * pool.length)]);
-}
+function showRandomBubble() { showBubble(pick(phrasesFor('idle'))); }
+function showCategoryBubble(category, duration) { showBubble(pick(phrasesFor(category)), duration); }
 
 // ── Reacciones por horario ────────────────────────────────────────────────────
 function checkTimeReactions() {
   if (!timeReactions) return;
   const h = new Date().getHours();
   if (h >= 6 && h < 9) {
-    setTimeout(() => showBubble('¡Buenos días! ☀️'), 2500);
+    setTimeout(() => showCategoryBubble('morning'), 2500);
     if (agentData?.animations['Greeting'])
       setTimeout(() => playAnimation('Greeting', loopIdle), 1000);
   } else if (h >= 22 || h < 5) {
-    setTimeout(() => showBubble('Son las ' + h + ' hs. ¿No deberías descansar? 😴'), 3000);
+    setTimeout(() => showCategoryBubble('night'), 3000);
   } else if (h === 12 || h === 13) {
     setTimeout(() => showBubble('¡Es hora de almorzar! 🍽️'), 2000);
   }
@@ -488,7 +491,7 @@ hit.addEventListener('contextmenu', (e) => {
   window.pet.showContextMenu();
 });
 
-// ── Easter egg: triple clic rápido ───────────────────────────────────────────
+// ── Clic: frase ocasional + easter egg de triple clic ────────────────────────
 let clickHistory = [];
 hit.addEventListener('click', () => {
   const now = Date.now();
@@ -500,7 +503,10 @@ hit.addEventListener('click', () => {
       .filter((n) => agentData?.animations[n]);
     if (specials.length > 0)
       playAnimation(specials[Math.floor(Math.random() * specials.length)], loopIdle);
-    if (speechBubbles) showBubble('¡Para! ¡Para! 😵', 3000);
+    if (speechBubbles) showCategoryBubble('click', 3000);
+  } else if (speechBubbles && Math.random() < 0.4) {
+    // clic simple: a veces el personaje reacciona con una frase
+    showCategoryBubble('click', 3000);
   }
 });
 
