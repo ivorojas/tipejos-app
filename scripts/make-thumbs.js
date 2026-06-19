@@ -147,25 +147,54 @@ function processAgent(name) {
 
   const [fw, fh] = data.framesize || [124, 93];
   const sheet    = readPNG(mapFile);
+  const anims    = data.animations || {};
 
-  // Buscar el primer frame no-vacío: recorre las primeras N celdas
-  const cols  = Math.floor(sheet.w / fw);
-  const rows  = Math.floor(sheet.h / fh);
-  let bestX = 0, bestY = 0, bestN = 0;
-  for (let row = 0; row < Math.min(rows, 10); row++) {
-    for (let col = 0; col < cols; col++) {
-      let n = 0;
-      const sx = col * fw, sy = row * fh;
-      for (let y = 0; y < fh; y += 2)
-        for (let x = 0; x < fw; x += 2)
-          if (sheet.data[((sy + y) * sheet.w + (sx + x)) * 4 + 3] > 0) n++;
-      if (n > bestN) { bestN = n; bestX = sx; bestY = sy; }
-    }
+  // Contar píxeles opacos en la celda que arranca en (sx,sy).
+  const opacityAt = (sx, sy) => {
+    let n = 0;
+    for (let y = 0; y < fh; y += 2)
+      for (let x = 0; x < fw; x += 2) {
+        const px = sx + x, py = sy + y;
+        if (px < sheet.w && py < sheet.h && sheet.data[(py * sheet.w + px) * 4 + 3] > 0) n++;
+      }
+    return n;
+  };
+
+  // Pose canónica: tomar la PRIMERA animación neutra disponible (en orden de
+  // prioridad) y, dentro de ELLA, su frame más visible. La pose de descanso es
+  // representativa aunque tenga menos píxeles que un frame de acción.
+  const PREF = ['RestPose', 'Idle1_1', 'Idle1_2', 'Idle', 'Greeting', 'Show', 'Hearing_1'];
+  const MIN_OPAQUE = 60; // umbral para descartar frames casi vacíos
+  let bestX, bestY, bestN = -1, src = '';
+
+  for (const nm of PREF) {
+    const a = anims[nm];
+    if (!a || !a.frames) continue;
+    let bx = 0, by = 0, bn = -1;
+    for (const f of a.frames)
+      if (f.images && f.images[0]) {
+        const [x, y] = f.images[0];
+        const n = opacityAt(x, y);
+        if (n > bn) { bn = n; bx = x; by = y; }
+      }
+    if (bn >= MIN_OPAQUE) { bestX = bx; bestY = by; bestN = bn; src = nm; break; }
+  }
+
+  // Fallback: escanear toda la hoja por el frame más lleno.
+  if (bestN < MIN_OPAQUE) {
+    const cols = Math.floor(sheet.w / fw), rows = Math.floor(sheet.h / fh);
+    bestN = -1;
+    for (let row = 0; row < rows; row++)
+      for (let col = 0; col < cols; col++) {
+        const n = opacityAt(col * fw, row * fh);
+        if (n > bestN) { bestN = n; bestX = col * fw; bestY = row * fh; }
+      }
+    src = 'global';
   }
 
   const { thumb } = makeThumb(sheet.data, sheet.w, bestX, bestY, fw, fh);
   writePNG(thumbFile, THUMB_SIZE, THUMB_SIZE, thumb);
-  return `OK (${fw}×${fh}, ${bestN} opacos)`;
+  return `OK (${fw}×${fh}, ${bestN} opacos, ${src})`;
 }
 
 // ── Main ─────────────────────────────────────────────────────────────────────

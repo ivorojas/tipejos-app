@@ -435,7 +435,7 @@ ipcMain.on('pet:context-menu', (event) => {
 ipcMain.handle('settings:get', () => {
   const agents     = listAgents();
   const activePets = [...pets.entries()].map(([wcId, { character }]) => ({ wcId, character }));
-  return { config: { ...cfg }, agents, activePets };
+  return { config: { ...cfg }, agents, activePets, version: app.getVersion() };
 });
 
 ipcMain.on('settings:apply', (_e, partial) => {
@@ -494,7 +494,37 @@ app.whenReady().then(() => {
 
   // Buscar actualizaciones (solo en la app instalada)
   setupAutoUpdate();
+
+  // Captura de verificación (solo si TIPEJOS_SHOT está seteado)
+  maybeCaptureScreenshots();
 });
+
+// ─── Captura de pantalla para verificación (solo con env TIPEJOS_SHOT) ─────────
+function maybeCaptureScreenshots() {
+  const dir = process.env.TIPEJOS_SHOT;
+  if (!dir) return;
+  fs.mkdirSync(dir, { recursive: true });
+  setTimeout(async () => {
+    try {
+      let i = 0;
+      for (const { win, character } of pets.values()) {
+        const img = await win.webContents.capturePage();
+        fs.writeFileSync(path.join(dir, `pet-${i}-${character}.png`), img.toPNG());
+        i++;
+      }
+      openSettings();
+      setTimeout(async () => {
+        try {
+          if (settingsWin && !settingsWin.isDestroyed()) {
+            const img = await settingsWin.webContents.capturePage();
+            fs.writeFileSync(path.join(dir, 'settings.png'), img.toPNG());
+          }
+        } catch (e) { console.error('shot settings:', e); }
+        app.exit(0);
+      }, 2500);
+    } catch (e) { console.error('shot:', e); app.exit(1); }
+  }, 3500);
+}
 
 // ─── Auto-actualización ─────────────────────────────────────────────────────────
 

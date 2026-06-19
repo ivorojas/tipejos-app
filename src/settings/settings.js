@@ -57,6 +57,11 @@ function filterCharGrid(query) {
   grid.innerHTML = '';
   noResults.style.display = filtered.length === 0 ? '' : 'none';
 
+  const countEl = document.getElementById('char-count');
+  if (countEl) countEl.textContent = q
+    ? `(${filtered.length} de ${allAgents.length})`
+    : `(${allAgents.length} personajes)`;
+
   for (const name of filtered) {
     const card = document.createElement('div');
     card.className = 'char-card';
@@ -170,6 +175,9 @@ function wireListeners() {
   config     = data.config;
   agents     = data.agents;
   activePets = data.activePets;
+
+  const verEl = document.getElementById('app-version');
+  if (verEl && data.version) verEl.textContent = 'v' + data.version;
 
   populateForm(config);
   renderActivePets(activePets);
