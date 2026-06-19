@@ -25,6 +25,7 @@ const DEFAULT_CONFIG = {
   recentCharacters:  [],   // últimos personajes usados (máx 5)
   speechBubbles:  true,
   startWithWindows: false,
+  hasSeenWelcome: false,   // mostró el tutorial de bienvenida
   pets:           [],
 };
 
@@ -338,6 +339,9 @@ ipcMain.handle('get-initial', (event) => {
     ? screen.getDisplayNearestPoint({ x: winX, y: winY })
     : screen.getPrimaryDisplay();
   const { workArea } = display;
+  // Tutorial de bienvenida: solo la primera mascota del primer arranque lo recibe.
+  const firstRun = !cfg.hasSeenWelcome;
+  if (firstRun) { cfg.hasSeenWelcome = true; saveConfig(); }
   return {
     agent:          pet ? pet.character : null,
     soundOn:        cfg.soundOn,
@@ -350,6 +354,7 @@ ipcMain.handle('get-initial', (event) => {
     timeReactions:  cfg.timeReactions,
     mouseReactions: cfg.mouseReactions,
     speechBubbles:  cfg.speechBubbles,
+    firstRun,
     screenBounds:   { x: workArea.x, y: workArea.y, width: workArea.width, height: workArea.height },
     petX:           winX,
     petY:           winY,

@@ -546,4 +546,23 @@ window.pet.onShowBubbleRandom(  ()  => showRandomBubble());
   } else {
     console.warn('No hay personajes descargados. Corre "npm run setup".');
   }
+
+  if (initial.firstRun) showWelcomeSequence();
 })();
+
+// ── Tutorial de bienvenida (primer arranque) ──────────────────────────────────
+function showWelcomeSequence() {
+  const steps = [
+    '¡Hola! Soy tu nueva mascota de escritorio. 👋',
+    'Hacé clic derecho en mí para cambiar de personaje o sumar más.',
+    'Doble clic en el ícono ▲ (abajo a la derecha) abre los Ajustes.',
+    '¡A disfrutar! 🎉',
+  ];
+  let i = 0;
+  const DUR = 5000;
+  (function next() {
+    if (i >= steps.length) return;
+    showBubble(steps[i++], DUR);
+    setTimeout(next, DUR + 600);
+  })();
+}
