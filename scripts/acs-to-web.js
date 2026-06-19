@@ -241,6 +241,14 @@ function readImageEntry(st) {
   return st.withOffset(loc.offset, () => readImage(st));
 }
 
+// Entrada de audio: LOCATION + checksum. Los datos son un WAV/RIFF CRUDO de
+// `loc.size` bytes en `loc.offset` (no comprimido, no COMPRESSED_DATABLOCK).
+function readAudioEntry(st) {
+  const loc = readLocation(st);
+  st.u32();                          // checksum
+  return st.withOffset(loc.offset, () => Buffer.from(st.raw(loc.size)));
+}
+
 function readFrameImage(st) {
   return { imageIndex: st.u32(), xOffset: st.u16(), yOffset: st.u16() };
 }
@@ -288,13 +296,16 @@ function parseACS(buf) {
   const charLoc  = readLocation(st);
   const animLoc  = readLocation(st);
   const imageLoc = readLocation(st);
-  readLocation(st); // audioLoc — sin usar por ahora
+  const audioLoc = readLocation(st);
 
   const characterInfo = st.withOffset(charLoc.offset,  () => readCharacterInfo(st));
   const animations    = st.withOffset(animLoc.offset,  () => st.list(readAnimationEntry));
   const images        = st.withOffset(imageLoc.offset, () => st.list(readImageEntry));
+  const audios        = audioLoc.offset
+    ? st.withOffset(audioLoc.offset, () => st.list(readAudioEntry))
+    : [];
 
-  return { characterInfo, animations, images };
+  return { characterInfo, animations, images, audios };
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -550,4 +561,7 @@ function main() {
   console.log(`✓ ${r.name}: ${r.animations} animaciones, ${r.frames} frames, ${r.cells} celdas, hoja ${r.sheet} (${r.charW}x${r.charH})`);
 }
 
-main();
+// Exportar para reuso (p. ej. scripts/acs-audio.js); solo correr CLI si es invocado directo.
+module.exports = { Stream, parseACS, agentDecompress, readCompressedBlock, readLocation, convert };
+
+if (require.main === module) main();
