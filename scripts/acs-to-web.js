@@ -159,8 +159,10 @@ function readCompressedBlock(st) {
 function readLocation(st) { return { offset: st.u32(), size: st.u32() }; }
 
 function readRGBQuad(st) {
+  // RGBQUAD de Windows en memoria: [Blue, Green, Red, reserved]. Como u32 LE,
+  // byte0=Blue, byte2=Red. Para RGBA hay que mapear R=byte2, B=byte0.
   const val = st.u32();
-  return { r: val & 0xff, g: (val >> 8) & 0xff, b: (val >> 16) & 0xff, a: 255 };
+  return { r: (val >> 16) & 0xff, g: (val >> 8) & 0xff, b: val & 0xff, a: 255 };
 }
 
 function readCharacterInfo(st) {
