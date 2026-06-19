@@ -29,10 +29,23 @@
       "output": "dist"
     },
     "compression": "store",
+    "publish": [
+      {
+        "provider": "github",
+        "owner": "ivorojas",
+        "repo": "tipejos-app",
+        "releaseType": "release"
+      }
+    ],
     "win": {
       "icon": "assets/icon.ico",
       "target": [
-        { "target": "portable", "arch": ["x64"] }
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
       ]
     },
     "nsis": {
@@ -43,10 +56,11 @@
       "uninstallerIcon": "assets/icon.ico",
       "createDesktopShortcut": true,
       "createStartMenuShortcut": true,
-      "shortcutName": "Tipejos"
-    },
-    "portable": {
-      "artifactName": "Tipejos-portable.exe"
+      "shortcutName": "Tipejos",
+      "artifactName": "Tipejos-Setup-${version}.exe"
     }
+  },
+  "dependencies": {
+    "electron-updater": "^6.8.9"
   }
 }

@@ -1,6 +1,10 @@
-const { app, BrowserWindow, Tray, Menu, ipcMain, screen, nativeImage, globalShortcut } = require('electron');
+const { app, BrowserWindow, Tray, Menu, ipcMain, screen, nativeImage, globalShortcut, dialog } = require('electron');
 const path = require('path');
 const fs   = require('fs');
+
+// Auto-update: solo se activa en la app empaquetada (no en `npm start`).
+let autoUpdater = null;
+try { ({ autoUpdater } = require('electron-updater')); } catch { /* dev */ }
 
 const ASSETS_DIR  = path.join(__dirname, '..', 'assets');
 const AGENTS_DIR  = path.join(ASSETS_DIR, 'agents');
@@ -482,7 +486,37 @@ app.whenReady().then(() => {
   app.on('activate', () => {
     if (pets.size === 0 && agents.length > 0) addPet(agents[0]);
   });
+
+  // Buscar actualizaciones (solo en la app instalada)
+  setupAutoUpdate();
 });
+
+// ─── Auto-actualización ─────────────────────────────────────────────────────────
+
+function setupAutoUpdate() {
+  if (!autoUpdater || !app.isPackaged) return;
+
+  autoUpdater.autoDownload = true;
+  autoUpdater.autoInstallOnAppQuit = true;
+
+  autoUpdater.on('update-downloaded', (info) => {
+    const r = dialog.showMessageBoxSync({
+      type:    'info',
+      title:   'Tipejos — Actualización disponible',
+      message: `Hay una versión nueva (${info.version}). ¿Reiniciar ahora para actualizar?`,
+      buttons: ['Reiniciar ahora', 'Después'],
+      defaultId: 0,
+      cancelId:  1,
+    });
+    if (r === 0) autoUpdater.quitAndInstall();
+  });
+
+  autoUpdater.on('error', (err) => console.error('[auto-update]', err?.message || err));
+
+  // Chequear al arrancar y cada 2 horas
+  autoUpdater.checkForUpdates().catch(() => {});
+  setInterval(() => autoUpdater.checkForUpdates().catch(() => {}), 2 * 60 * 60 * 1000);
+}
 
 app.on('window-all-closed', (e) => e.preventDefault());
 app.on('before-quit',  saveConfig);
