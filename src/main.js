@@ -482,6 +482,15 @@ ipcMain.on('settings:add-pet',    (_e, character) => addPet(character));
 ipcMain.on('settings:remove-pet', (_e, wcId)      => removePet(wcId));
 ipcMain.on('settings:close',      ()               => { if (settingsWin) settingsWin.close(); });
 
+// ─── Instancia única ──────────────────────────────────────────────────────────
+// Si ya hay una instancia corriendo, la nueva se mata sola y la existente
+// sube al frente (abre ajustes) en lugar de abrir un proceso duplicado.
+if (!app.requestSingleInstanceLock()) {
+  app.quit();
+} else {
+  app.on('second-instance', () => openSettings());
+}
+
 // ─── Ciclo de vida ─────────────────────────────────────────────────────────────
 
 app.whenReady().then(() => {
