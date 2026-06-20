@@ -243,8 +243,13 @@ function applyScaleToOverlays() {
 }
 
 // ── Motor de animación ────────────────────────────────────────────────────────
+// Animaciones de publicidad (texto promocional / web del origen, no parte del
+// personaje): E-man/E-woman tienen "4DEV_Advert", Wartnose "Advert_1". Se
+// excluyen de toda rotación automática para que nunca aparezcan solas.
+const AD_RE = /advert/i;
+
 function prepareAnimationLists() {
-  const names = Object.keys(agentData.animations || {});
+  const names = Object.keys(agentData.animations || {}).filter((n) => !AD_RE.test(n));
   idleNames = names.filter((n) => /^Idle/i.test(n));
   const CONTROL = new Set(['Show','Hide','Pause','Print','Save','EmptyTrash',
     'SendMail','GetTechy','CheckingSomething','Searching','Processing']);

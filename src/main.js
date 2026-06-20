@@ -145,7 +145,11 @@ function createPet(character, x, y) {
     },
   });
 
-  win.setAlwaysOnTop(true, 'screen-saver');
+  // 'floating' (no 'screen-saver'): el muñeco queda por encima de las ventanas
+  // normales pero NO pelea contra las topmost del sistema. Así la barra de tareas
+  // y el menú de "mostrar iconos ocultos" (abajo a la derecha) aparecen por encima
+  // del muñeco en vez de quedar tapados. (Pedido del usuario.)
+  win.setAlwaysOnTop(true, 'floating');
   win.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: true });
   win.setIgnoreMouseEvents(true, { forward: true });
   if (cfg.opacity !== 1.0) win.setOpacity(cfg.opacity);

@@ -177,6 +177,14 @@ function wireListeners() {
 // ── Historial de versiones ────────────────────────────────────────────────────
 const CHANGELOG = [
   {
+    version: '0.2.26',
+    date: '20 jun 2026',
+    changes: [
+      'Los muñecos ya no tapan la flechita de "mostrar iconos ocultos" abajo a la derecha (quedan por debajo de la barra de tareas)',
+      'Se quitaron de la rotación los frames de publicidad de E-man, E-woman y Wartnose',
+    ],
+  },
+  {
     version: '0.2.25',
     date: '20 jun 2026',
     changes: [
