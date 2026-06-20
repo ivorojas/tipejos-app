@@ -348,6 +348,34 @@ const GENERIC = {
   click:    ['¡Ey! ¿Qué hacés?', '¿Me tocaste, posta?', 'Dale, tranqui.'],
   morning:  ['¡Buenos días! ☀️', '¡Arriba, che!'],
   night:    ['Es tarde, andá a dormir. 🌙', 'A la cama, dale.'],
+  // Frases compartidas que se burlan del uso de IA. Aparecen ~15% del tiempo en modo cargada.
+  aiRoast: [
+    '¿Le preguntaste al ChatGPT cómo respirar bien?',
+    'Che, le preguntás a la IA hasta qué comer. ¿En serio?',
+    '¿Qué hacías antes del ChatGPT? Ah, pensabas vos. Qué época.',
+    '¿Y yo? ¿Me reemplazó la IA o qué onda?',
+    'La IA ya sabe más de tu vida que tu mejor amigo.',
+    'Tenés más conversaciones con ChatGPT que con personas reales.',
+    'Claude te va a empezar a cobrar por el trauma que le das.',
+    '¿Le pedís a la IA hasta que te diga si llueve, che?',
+    'Tanto ChatGPT y el laburo sigue igual de vacío. Mirá vos.',
+    '¿Tu próxima búsqueda es "cómo usar mejor la IA"? Ya sé que sí.',
+    'Le preguntaste a la IA si soy mejor que ella, ¿no? Spoiler: sí.',
+    'Escribiste más prompts que palabras propias hoy, posta.',
+    '¿ChatGPT, Claude, Gemini? Tenés más IAs que amigos, che.',
+    'Usás la IA hasta para saber qué serie ver esta noche.',
+    'La IA te escribe todo y vos te llevás el crédito. Respeto.',
+    'Con IA pa todo y seguís acá sin terminar nada. Mirá vos.',
+    'Próximamente: le pedís a la IA que piense por vos. Ah, ya pasó.',
+    'Le preguntaste a Claude cómo se siente el lunes. Hay terapeutas, che.',
+    '¿Le dijiste al ChatGPT que me tenés a mí y que lo hago mejor?',
+    'La IA tiene paciencia infinita. Por eso me preferís a mí, obvio.',
+    'Tanto copiar respuestas de la IA y ni las entendés, boludo.',
+    '¿Le mandás hasta los mails al ChatGPT? Ya no pensás vos nada.',
+    'Ojo que la IA también se equivoca. Como vos, pero más rápido.',
+    'Che, vas a terminar hablándole a la IA de tus sentimientos.',
+    'Horas con la IA y el trabajo igual sin terminar. Clásico.',
+  ],
 };
 
 // Devuelve { roast, soft } de una categoría para el personaje actual.
@@ -415,7 +443,12 @@ function _drainQ() {
 }
 
 // Automáticos usan queueBubble; usuario usa showBubble directamente.
-function showRandomBubble()           { queueBubble(pickPhrase('idle')); }
+function showRandomBubble() {
+  // 15% de chance de tirar una frase de IA cuando el modo cargada está activo.
+  if (cargadaMode && Math.random() < 0.15)
+    return queueBubble(pick(GENERIC.aiRoast));
+  queueBubble(pickPhrase('idle'));
+}
 function showCategoryBubble(cat, dur) { queueBubble(pickPhrase(cat), dur); }
 
 // ── Reacciones por horario ────────────────────────────────────────────────────

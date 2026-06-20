@@ -177,6 +177,14 @@ function wireListeners() {
 // ── Historial de versiones ────────────────────────────────────────────────────
 const CHANGELOG = [
   {
+    version: '0.2.21',
+    date: '20 jun 2026',
+    changes: [
+      'Frases nuevas compartidas por todos: se burlan de usar IA (ChatGPT, Claude) para todo',
+      'Aparecen ~15% del tiempo durante las frases idle, solo en Modo Cargada',
+    ],
+  },
+  {
     version: '0.2.20',
     date: '20 jun 2026',
     changes: [
