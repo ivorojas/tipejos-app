@@ -223,6 +223,7 @@ function applyToPets(partial) {
     if (partial.cargadaMode  !== undefined) win.webContents.send('set-cargada-mode',   partial.cargadaMode);
     if (partial.bubbleFontSize!==undefined) win.webContents.send('set-bubble-font',    partial.bubbleFontSize);
     if ('phraseLikes' in partial) win.webContents.send('set-phrase-likes', partial.phraseLikes);
+    if ('petShadow' in partial) win.webContents.send('set-pet-shadow', partial.petShadow);
   }
   if (partial.startWithWindows !== undefined) {
     app.setLoginItemSettings({ openAtLogin: partial.startWithWindows });
@@ -384,6 +385,7 @@ ipcMain.handle('get-initial', (event) => {
     cargadaMode:    cfg.cargadaMode,
     bubbleFontSize: cfg.bubbleFontSize ?? 14,
     phraseLikes:    cfg.phraseLikes || {},
+    petShadow:      cfg.petShadow || false,
     firstRun,
     showSoundTip,
     screenBounds:   { x: workArea.x, y: workArea.y, width: workArea.width, height: workArea.height },
@@ -475,8 +477,6 @@ ipcMain.on('pet:context-menu', (event) => {
     : [];
 
   Menu.buildFromTemplate([
-    { label: 'Eliminar',  click: () => removePet(wcId) },
-    { type: 'separator' },
     { label: '🎭 Truco',  click: () => win.webContents.send('do-trick')          },
     { label: '💬 Globo',  click: () => win.webContents.send('show-bubble-random') },
     { type: 'separator' },
@@ -484,6 +484,8 @@ ipcMain.on('pet:context-menu', (event) => {
     { label: 'Ajustes...', click: openSettings },
     { type: 'separator' },
     { label: 'Salir de Tipejos', click: () => app.quit() },
+    { type: 'separator' },
+    { label: 'Eliminar',  click: () => removePet(wcId) },
   ]).popup({ window: win });
 });
 

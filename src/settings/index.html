@@ -167,11 +167,15 @@
       font-size: 8px; color: #777; padding: 1px 4px;
       pointer-events: none;
     }
-    .char-famous-badge {
+    .char-fav-btn {
       position: absolute; top: 4px; left: 4px;
-      font-size: 9px; color: #f0c040;
-      pointer-events: none;
+      font-size: 13px; cursor: pointer; line-height: 1;
+      opacity: 0.35; transition: opacity 0.15s, transform 0.15s;
+      background: none; border: none; padding: 1px;
+      user-select: none;
     }
+    .char-fav-btn:hover { opacity: 0.8; }
+    .char-fav-btn.active { opacity: 1; transform: scale(1.2); }
     #btn-show-all {
       display: none; width: 100%; margin-top: 10px;
       padding: 7px; background: #1a1a30; border: 1px dashed #3a3a70;
@@ -201,9 +205,10 @@
       background: #12121e; border: 1px solid #2a2a48;
       border-radius: 10px; padding: 14px; min-height: 90px;
     }
-    #pf-thumb {
-      width: 72px; height: 72px; flex-shrink: 0;
+    #pf-char-preview {
+      width: 80px; height: 80px; flex-shrink: 0;
       background-repeat: no-repeat; background-size: contain; background-position: center;
+      image-rendering: pixelated;
     }
     #pf-phrase {
       flex: 1; font-size: 13px; color: #d0d0e8; line-height: 1.5;
@@ -228,6 +233,16 @@
     }
     #pf-progress-fill { height: 100%; background: #7070ee; border-radius: 2px; transition: width 0.2s; }
     #pf-progress-text { font-size: 11px; color: #666; text-align: center; }
+    @keyframes pf-slide-right {
+      0%   { transform: translateX(0);    opacity: 1; }
+      100% { transform: translateX(60px); opacity: 0; }
+    }
+    @keyframes pf-slide-left {
+      0%   { transform: translateX(0);    opacity: 1; }
+      100% { transform: translateX(-60px); opacity: 0; }
+    }
+    .pf-anim-accept { animation: pf-slide-right 0.22s ease-out forwards; }
+    .pf-anim-reject { animation: pf-slide-left  0.22s ease-out forwards; }
     #pf-done-msg { text-align: center; color: #888; font-size: 13px; padding: 16px 0; }
 
     /* ── Controles ───────────────────────────────────────── */
@@ -352,12 +367,15 @@
         <span id="pf-char-label"></span>
       </div>
       <div id="pf-card">
-        <div id="pf-thumb"></div>
+        <div id="pf-char-preview"></div>
         <span id="pf-phrase"></span>
       </div>
       <div id="pf-actions">
         <button class="pf-btn pf-no"  id="pf-btn-no" >✕  No me gusta</button>
         <button class="pf-btn pf-yes" id="pf-btn-yes">❤  Me gusta</button>
+      </div>
+      <div style="text-align:center; margin-top:8px">
+        <button id="pf-btn-prev" style="background:none;border:none;color:#555;font-size:11px;cursor:pointer;padding:2px 6px">← Anterior</button>
       </div>
       <div id="pf-progress-wrap">
         <div id="pf-progress-bar"><div id="pf-progress-fill"></div></div>
@@ -380,6 +398,12 @@
       <input type="range" id="opacity" min="0.1" max="1" step="0.05" value="1">
       <span class="val" id="opacity-val">100%</span>
     </div>
+      <div class="form-row" style="margin-top:10px">
+        <label class="toggle-row">
+          <input type="checkbox" id="pet-shadow" />
+          <span>Sombra debajo del personaje</span>
+        </label>
+      </div>
   </div>
 
   <!-- Sonido -->

@@ -25,6 +25,7 @@ contextBridge.exposeInMainWorld('pet', {
   onSetCargadaMode:    (cb) => ipcRenderer.on('set-cargada-mode',    (_e, v) => cb(v)),
   onSetBubbleFontSize: (cb) => ipcRenderer.on('set-bubble-font',    (_e, v) => cb(v)),
   onSetPhraseLikes: (cb) => ipcRenderer.on('set-phrase-likes', (_e, v) => cb(v)),
+  onSetPetShadow:  (cb) => ipcRenderer.on('set-pet-shadow',  (_e, v) => cb(v)),
   onDoTrick:           (cb) => ipcRenderer.on('do-trick',           ()       => cb()),
   onShowBubbleRandom:  (cb) => ipcRenderer.on('show-bubble-random', ()       => cb()),
   // AI upscaling on-demand

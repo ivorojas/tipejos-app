@@ -67,9 +67,13 @@ const FAMOUS_SET  = new Set(FAMOUS);
 const FAMOUS_RANK = Object.fromEntries(FAMOUS.map((n, i) => [n, i]));
 
 let showAllChars = false;
+let userFavorites = new Set(); // nombres de personajes marcados como favoritos
 
 function sortAgents(list) {
   return [...list].sort((a, b) => {
+    const fa = userFavorites.has(a) ? 0 : 1;
+    const fb = userFavorites.has(b) ? 0 : 1;
+    if (fa !== fb) return fa - fb;
     const ra = FAMOUS_RANK[a] ?? 999;
     const rb = FAMOUS_RANK[b] ?? 999;
     if (ra !== rb) return ra - rb;
@@ -147,13 +151,26 @@ function applyGridFilters() {
       card.appendChild(badge);
     }
 
-    // Badge de famoso
-    if (FAMOUS_SET.has(name)) {
-      const fb = document.createElement('div');
-      fb.className   = 'char-famous-badge';
-      fb.textContent = '★';
-      card.appendChild(fb);
-    }
+    // Botón de favorito (❤) — el usuario lo marca manualmente
+    const favBtn = document.createElement('button');
+    favBtn.className = 'char-fav-btn' + (userFavorites.has(name) ? ' active' : '');
+    favBtn.textContent = '♥';
+    favBtn.title = userFavorites.has(name) ? 'Quitar de favoritos' : 'Marcar como favorito';
+    favBtn.addEventListener('click', (e) => {
+      e.stopPropagation(); // no abrir el personaje
+      if (userFavorites.has(name)) {
+        userFavorites.delete(name);
+        favBtn.classList.remove('active');
+        favBtn.title = 'Marcar como favorito';
+      } else {
+        userFavorites.add(name);
+        favBtn.classList.add('active');
+        favBtn.title = 'Quitar de favoritos';
+      }
+      window.settings.apply({ favorites: [...userFavorites] });
+      applyGridFilters(); // re-sort (favoritos arriba)
+    });
+    card.appendChild(favBtn);
 
     card.addEventListener('click', () => window.settings.addPet(name));
     grid.appendChild(card);
@@ -207,6 +224,7 @@ function readForm() {
     cargadaMode:     document.getElementById('cargada-mode').checked,
     bubbleFontSize:  parseInt(document.getElementById('bubble-fs').value, 10),
     startWithWindows:document.getElementById('startup').checked,
+    petShadow: document.getElementById('pet-shadow')?.checked || false,
   };
 }
 
@@ -243,6 +261,8 @@ function populateForm(c) {
   document.querySelectorAll('.mode-btn').forEach((btn) => {
     btn.classList.toggle('active', btn.dataset.mode === (c.behaviorMode || 'normal'));
   });
+  const shadowEl = document.getElementById('pet-shadow');
+  if (shadowEl) shadowEl.checked = !!c.petShadow;
 }
 
 // ── Eventos de controles live ─────────────────────────────────────────────────
@@ -275,10 +295,24 @@ function wireListeners() {
   document.getElementById('btn-close').addEventListener('click', () => {
     window.settings.close();
   });
+  document.getElementById('pet-shadow')?.addEventListener('change', () => {
+    window.settings.apply({ petShadow: document.getElementById('pet-shadow').checked });
+  });
 }
 
 // ── Historial de versiones ────────────────────────────────────────────────────
 const CHANGELOG = [
+  {
+    version: '0.2.35',
+    date: '20 jun 2026',
+    changes: [
+      'Menú contextual: "Eliminar" movido al final (más cercano al clic)',
+      'Favoritos: botón ❤ en cada personaje para marcar los tuyos (sin auto-estrellas)',
+      'Sombra del personaje: opción en Ajustes > Apariencia (desactivada por defecto)',
+      'Tinder: animación al aceptar/rechazar, botón Anterior para deshacer, preview animado del personaje',
+      'Tinder: botón para filtrar otro personaje al terminar una lista',
+    ],
+  },
   {
     version: '0.2.34',
     date: '20 jun 2026',
@@ -631,6 +665,7 @@ function wireUpdateButton(isWindows) {
 
   populateForm(config);
   renderActivePets(activePets);
+  userFavorites = new Set(data.config.favorites || []);
   renderCharGrid(agents, data.agentSizes);
   initPhraseFilter(data.config);
   wireListeners();
@@ -666,6 +701,67 @@ function initPhraseFilter(cfg) {
   sel.value = prev;
 }
 
+let pfAnimTimer    = null;
+let pfSpriteFrames = [];
+let pfSpriteIdx    = 0;
+
+function pfStartCharAnimation(charName) {
+  if (pfAnimTimer) { clearTimeout(pfAnimTimer); pfAnimTimer = null; }
+  pfSpriteFrames = []; pfSpriteIdx = 0;
+
+  const previewEl = document.getElementById('pf-char-preview');
+  if (!previewEl) return;
+
+  const base = `../../assets/agents/${charName}/`;
+  previewEl.style.backgroundImage = `url("${base}thumb.png")`;
+  previewEl.style.backgroundSize  = 'contain';
+  previewEl.style.backgroundPosition = 'center';
+
+  // Guardar clippy anterior para no romper el renderer si está cargado
+  const prevClipy = window.clippy;
+  window.clippy = {
+    ready: (_n, data) => {
+      window.clippy = prevClipy || window.clippy;
+      const [fw, fh] = data.framesize || [124, 93];
+      const anims = data.animations || {};
+      const idleKey = ['RestPose','Idle1_1','Idle1_2','Idle2_1','Idle3_1','Greeting']
+        .find(k => anims[k]) || Object.keys(anims)[0];
+      const animDef = anims[idleKey];
+      if (!animDef) return;
+      pfSpriteFrames = animDef.frames
+        .filter(f => f.images && f.images.length)
+        .map(f => ({ pos: f.images[0], dur: Math.max(f.duration || 100, 80) }));
+      if (!pfSpriteFrames.length) return;
+
+      const img = new Image();
+      img.onload = () => {
+        previewEl.style.backgroundImage    = `url("${base}map.png")`;
+        previewEl.style.backgroundSize     = `${img.naturalWidth}px auto`;
+        previewEl.style.backgroundPosition = '0 0';
+        previewEl.style.width  = fw + 'px';
+        previewEl.style.height = fh + 'px';
+        pfCycleSprite(previewEl);
+      };
+      img.onerror = () => {};
+      img.src = base + 'map.png';
+    },
+    soundsReady: () => {},
+  };
+
+  const script = document.createElement('script');
+  script.src = base + 'agent.js';
+  script.onerror = () => { window.clippy = prevClipy || window.clippy; };
+  document.head.appendChild(script);
+}
+
+function pfCycleSprite(el) {
+  if (!pfSpriteFrames.length) return;
+  const frame = pfSpriteFrames[pfSpriteIdx % pfSpriteFrames.length];
+  el.style.backgroundPosition = `-${frame.pos[0]}px -${frame.pos[1]}px`;
+  pfSpriteIdx++;
+  pfAnimTimer = setTimeout(() => pfCycleSprite(el), frame.dur);
+}
+
 function pfOpen(charName) {
   pfCharName = charName;
   const charData = (window.PHRASES_DATA || {})[charName] || {};
@@ -680,17 +776,18 @@ function pfOpen(charName) {
   pfIndex = 0;
 
   document.getElementById('pf-char-label').textContent = charName;
-  document.getElementById('pf-thumb').style.backgroundImage =
-    `url("../../assets/agents/${charName}/thumb.png")`;
+  pfStartCharAnimation(charName);
 
   document.getElementById('pf-picker').style.display    = 'none';
   document.getElementById('pf-swiper').style.display    = '';
   document.getElementById('pf-done-msg').style.display  = 'none';
   document.getElementById('pf-actions').style.display   = '';
+  pfHistory = [];
   pfShowPhrase();
 }
 
 function pfClose() {
+  if (pfAnimTimer) { clearTimeout(pfAnimTimer); pfAnimTimer = null; }
   document.getElementById('pf-picker').style.display   = '';
   document.getElementById('pf-swiper').style.display   = 'none';
   document.getElementById('pf-done-msg').style.display = 'none';
@@ -714,9 +811,16 @@ function pfShowPhrase() {
     ((pfIndex + 1) / total * 100) + '%';
 }
 
+let pfHistory = []; // { text, was: false | undefined }
+
 function pfDecide(liked) {
   if (pfIndex >= pfPhrases.length) return;
   const text = pfPhrases[pfIndex];
+
+  // Guardar estado previo para el botón Anterior
+  const wasDecision = (pfPhraseLikes[pfCharName] || {})[text];
+  pfHistory.push({ index: pfIndex, text, was: wasDecision });
+
   if (!pfPhraseLikes[pfCharName]) pfPhraseLikes[pfCharName] = {};
   if (liked) {
     delete pfPhraseLikes[pfCharName][text];
@@ -726,7 +830,37 @@ function pfDecide(liked) {
     pfPhraseLikes[pfCharName][text] = false;
   }
   window.settings.apply({ phraseLikes: pfPhraseLikes });
-  pfIndex++;
+
+  // Animación de slide
+  const card = document.getElementById('pf-card');
+  card.classList.add(liked ? 'pf-anim-accept' : 'pf-anim-reject');
+  setTimeout(() => {
+    card.classList.remove('pf-anim-accept', 'pf-anim-reject');
+    pfIndex++;
+    pfShowPhrase();
+  }, 220);
+}
+
+function pfPrev() {
+  if (!pfHistory.length) return;
+  const last = pfHistory.pop();
+  pfIndex = last.index;
+
+  // Restaurar estado previo
+  if (!pfPhraseLikes[pfCharName]) pfPhraseLikes[pfCharName] = {};
+  if (last.was === false) {
+    pfPhraseLikes[pfCharName][last.text] = false;
+  } else {
+    delete pfPhraseLikes[pfCharName][last.text];
+    if (Object.keys(pfPhraseLikes[pfCharName]).length === 0)
+      delete pfPhraseLikes[pfCharName];
+  }
+  window.settings.apply({ phraseLikes: pfPhraseLikes });
+
+  // Mostrar swiper si estaba en done
+  document.getElementById('pf-done-msg').style.display = 'none';
+  document.getElementById('pf-swiper').style.display   = '';
+  document.getElementById('pf-actions').style.display  = '';
   pfShowPhrase();
 }
 
@@ -735,10 +869,16 @@ function pfShowDone() {
   const disliked = pfPhrases.filter(p => (pfPhraseLikes[pfCharName] || {})[p] === false).length;
   document.getElementById('pf-swiper').style.display   = 'none';
   document.getElementById('pf-done-msg').style.display = '';
-  document.getElementById('pf-done-msg').textContent   =
+  document.getElementById('pf-done-msg').innerHTML     =
     `✓ Revisaste ${total} frases de ${pfCharName}.` +
-    (disliked > 0 ? ` ${disliked} descartadas.` : ' Ninguna descartada.');
+    (disliked > 0 ? ` ${disliked} descartadas.` : ' Ninguna descartada.') +
+    `<br><button id="pf-btn-another" style="margin-top:8px;padding:5px 12px;background:#1a1a30;border:1px solid #3a3a70;border-radius:6px;color:#7070cc;font-size:11px;cursor:pointer">Filtrar otro personaje</button>`;
   initPhraseFilter({ phraseLikes: pfPhraseLikes });
+  document.getElementById('pf-btn-another')?.addEventListener('click', () => {
+    document.getElementById('pf-done-msg').style.display = 'none';
+    document.getElementById('pf-picker').style.display   = '';
+    document.getElementById('pf-char-select').value = '';
+  });
 }
 
 document.getElementById('pf-char-select')?.addEventListener('change', (e) => {
@@ -747,3 +887,4 @@ document.getElementById('pf-char-select')?.addEventListener('change', (e) => {
 document.getElementById('pf-back')?.addEventListener('click', pfClose);
 document.getElementById('pf-btn-yes')?.addEventListener('click', () => pfDecide(true));
 document.getElementById('pf-btn-no')?.addEventListener('click',  () => pfDecide(false));
+document.getElementById('pf-btn-prev')?.addEventListener('click', pfPrev);

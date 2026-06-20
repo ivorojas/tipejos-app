@@ -225,6 +225,7 @@ function buildAgent(name) {
     d.style.zIndex = String(i);
     stage.insertBefore(d, hit);
     overlays.push(d);
+    if (petShadow) d.style.filter = 'drop-shadow(0 4px 10px rgba(0,0,0,0.7))';
   }
 
   hit.style.width  = w + 'px';
@@ -271,6 +272,11 @@ function applyScaleToOverlays() {
   hit.style.height = h + 'px';
   layoutWindow(w, h);
   if (curFrameImages) drawFrame(curFrameImages);
+}
+
+function applyPetShadow(on) {
+  petShadow = on;
+  for (const d of overlays) d.style.filter = on ? 'drop-shadow(0 4px 10px rgba(0,0,0,0.7))' : '';
 }
 
 // ── Motor de animación ────────────────────────────────────────────────────────
@@ -457,6 +463,7 @@ const GENERIC = {
 };
 
 let phraseLikes = {}; // { charName: { phrase: false } } — frases descartadas por el usuario
+let petShadow = false;
 
 // Devuelve { roast, soft } de una categoría para el personaje actual,
 // filtrando las frases que el usuario descartó.
@@ -759,6 +766,7 @@ window.pet.onSetSpeechBubbles(  (v) => { speechBubbles = v; if (!v) bubbleEl.cla
 window.pet.onSetCargadaMode(    (v) => { cargadaMode = v; });
 window.pet.onSetBubbleFontSize( (v) => { document.documentElement.style.setProperty('--bubble-fs', v + 'px'); });
 window.pet.onSetPhraseLikes((likes) => { phraseLikes = likes; });
+window.pet.onSetPetShadow((v) => applyPetShadow(v));
 window.pet.onDoTrick(           ()  => { if (funNames.length) playAnimation(funNames[Math.floor(Math.random()*funNames.length)], loopIdle); });
 window.pet.onShowBubbleRandom(  ()  => showRandomBubble());
 window.pet.onAiSpriteReady((name, filePath) => {
@@ -781,6 +789,8 @@ window.pet.onAiSpriteReady((name, filePath) => {
   speechBubbles  = initial.speechBubbles  !== false;
   cargadaMode    = initial.cargadaMode    !== false;
   phraseLikes    = initial.phraseLikes || {};
+  petShadow = initial.petShadow || false;
+  applyPetShadow(petShadow);
   if (initial.screenBounds) screenBounds = initial.screenBounds;
   petX = initial.petX ?? 0;
   petY = initial.petY ?? 0;
