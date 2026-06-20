@@ -570,15 +570,18 @@ window.pet.onShowBubbleRandom(  ()  => showRandomBubble());
 
   if (initial.firstRun) {
     showWelcomeSequence();
+    lastShownHour = getRoundedHour(); // no mostrar hora durante la bienvenida
   } else {
-    // Aviso de sonidos activados (primera vez que se detectan encendidos)
     if (initial.showSoundTip) {
       setTimeout(() => showBubble('🔊 Sonidos activados — podés desactivarlos en Ajustes.', 6500), 3000);
-      setTimeout(showDayBubble, 12000);
+      setTimeout(showDayBubble,  12000);
+      setTimeout(showHourBubble, 19000);
     } else {
-      setTimeout(showDayBubble, 5000);
+      setTimeout(showDayBubble,  5000);
+      setTimeout(showHourBubble, 12000);
     }
   }
+  scheduleHourCheck();
 })();
 
 // ── Frase según el día de la semana ──────────────────────────────────────────
@@ -610,6 +613,55 @@ function showDayBubble() {
   if (!speechBubbles) return;
   const phrases = DAY_PHRASES[new Date().getDay()] || [];
   if (phrases.length) showBubble(phrases[Math.floor(Math.random() * phrases.length)]);
+}
+
+// ── Frase según la hora del día ───────────────────────────────────────────────
+const HOUR_PHRASES = [
+  'Medianoche. O sos muy comprometido o muy insomne.',          // 0
+  'La 1 de la mañana. Todo bien con vos, ¿no? 🤔',             // 1
+  'Las 2 AM. El silencio a esta hora es épico. 🌙',             // 2
+  'Las 3 AM. Tu cuerpo quiere dormir. Tu cerebro, no.',         // 3
+  'Las 4 AM. Ni los panaderos están despiertos todavía.',       // 4
+  'Las 5 AM. Terminando algo o empezando algo. Suerte.',        // 5
+  'Las 6 AM. El mundo despierta. Vos también, a regañadientes.',// 6
+  'Las 7. Hora de levantarse. En serio. Dale. ⏰',              // 7
+  'Las 8 AM. El día arrancó. Vos también, supongo.',            // 8
+  'Las 9. Café en mano y a arrancar. El caos ya empezó.',       // 9
+  "Las 10. Ya no hay excusa de 'recién me levanto'. ☕",        // 10
+  '¿Las 11? Casi mediodía. ¿Arrancaste algo productivo?',       // 11
+  "Mediodía. ¿Qué vas a comer? La respuesta incorrecta es nada.",// 12
+  'La 1 del mediodía. Siesta o café, elegís vos. 😴',           // 13
+  'Las 2 de la tarde. El bajón post-almuerzo es real. Resistí.',// 14
+  'Las 3 PM. ¿Cuánto hiciste hoy, en serio?',                  // 15
+  'Las 4 PM. El día se cierra y vos recién arrancaste, ¿no?',  // 16
+  'Las 5. Fin del horario laboral... teóricamente. 🏃',         // 17
+  'Las 6 PM. Menos mal que no estás en ese tráfico.',           // 18
+  'Las 7 de la tarde. ¿Segundo café o empezás con el vino? 🍷', // 19
+  'Las 8 de la noche. Cena o más laburo, ese es el dilema.',    // 20
+  'Las 9 de la noche. ¿Todavía laburando? Eso no está bien.',  // 21
+  'Las 10 de la noche. El día se termina, con o sin culpa.',    // 22
+  'Las 11 PM. Mañana te toca de vuelta. Qué aventura. 🎢',     // 23
+];
+
+let lastShownHour = -1;
+
+function getRoundedHour() {
+  const d = new Date();
+  return d.getMinutes() >= 30 ? (d.getHours() + 1) % 24 : d.getHours();
+}
+
+function showHourBubble() {
+  if (!speechBubbles) return;
+  const h = getRoundedHour();
+  if (HOUR_PHRASES[h]) showBubble(HOUR_PHRASES[h]);
+  lastShownHour = h;
+}
+
+function scheduleHourCheck() {
+  setInterval(() => {
+    const h = getRoundedHour();
+    if (h !== lastShownHour) showHourBubble();
+  }, 60 * 1000);
 }
 
 // ── Tutorial de bienvenida (primer arranque) ──────────────────────────────────
