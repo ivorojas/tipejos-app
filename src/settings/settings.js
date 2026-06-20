@@ -164,6 +164,15 @@ function wireListeners() {
 
   document.getElementById('btn-apply').addEventListener('click', () => {
     window.settings.apply(readForm());
+    const btn = document.getElementById('btn-apply');
+    btn.textContent = '✅ ¡Aplicado!';
+    btn.style.background = '#3a8a55';
+    btn.disabled = true;
+    setTimeout(() => {
+      btn.textContent = 'Aplicar cambios';
+      btn.style.background = '';
+      btn.disabled = false;
+    }, 1800);
   });
 
   document.getElementById('btn-close').addEventListener('click', () => {

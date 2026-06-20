@@ -15,7 +15,7 @@ const WIN_W       = 220;
 const WIN_H       = 220 + BUBBLE_PAD;
 
 const DEFAULT_CONFIG = {
-  soundOn:           false,
+  soundOn:           true,
   volume:            0.5,
   scale:             1.0,
   opacity:           1.0,
@@ -28,7 +28,8 @@ const DEFAULT_CONFIG = {
   speechBubbles:  true,
   cargadaMode:    true,    // Modo Cargada: el muñeco te bardea (~90% de las frases)
   startWithWindows: false,
-  hasSeenWelcome: false,   // mostró el tutorial de bienvenida
+  hasSeenWelcome:  false,  // mostró el tutorial de bienvenida
+  hasSeenSoundTip: false,  // mostró el aviso de sonidos activados
   pets:           [],
 };
 
@@ -342,8 +343,13 @@ ipcMain.handle('get-initial', (event) => {
     : screen.getPrimaryDisplay();
   const { workArea } = display;
   // Tutorial de bienvenida: solo la primera mascota del primer arranque lo recibe.
-  const firstRun = !cfg.hasSeenWelcome;
-  if (firstRun) { cfg.hasSeenWelcome = true; saveConfig(); }
+  const firstRun    = !cfg.hasSeenWelcome;
+  const showSoundTip = cfg.soundOn && !cfg.hasSeenSoundTip;
+  if (firstRun || showSoundTip) {
+    if (firstRun)    cfg.hasSeenWelcome  = true;
+    if (showSoundTip) cfg.hasSeenSoundTip = true;
+    saveConfig();
+  }
   return {
     agent:          pet ? pet.character : null,
     soundOn:        cfg.soundOn,
@@ -358,6 +364,7 @@ ipcMain.handle('get-initial', (event) => {
     speechBubbles:  cfg.speechBubbles,
     cargadaMode:    cfg.cargadaMode,
     firstRun,
+    showSoundTip,
     screenBounds:   { x: workArea.x, y: workArea.y, width: workArea.width, height: workArea.height },
     petX:           winX,
     petY:           winY,

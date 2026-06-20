@@ -342,7 +342,7 @@ function pickPhrase(category) {
 function pick(list) { return list[Math.floor(Math.random() * list.length)]; }
 
 let bubbleTimer = null;
-function showBubble(text, duration = 4500) {
+function showBubble(text, duration = 5200) {
   if (!speechBubbles) return;
   clearTimeout(bubbleTimer);
   bubbleText.textContent = text;
@@ -522,7 +522,7 @@ hit.addEventListener('click', () => {
       .filter((n) => agentData?.animations[n]);
     if (specials.length > 0)
       playAnimation(specials[Math.floor(Math.random() * specials.length)], loopIdle);
-    if (speechBubbles) showCategoryBubble('click', 3000);
+    if (speechBubbles) showCategoryBubble('click', 3700);
   } else if (speechBubbles && Math.random() < 0.4) {
     // clic simple: a veces el personaje reacciona con una frase
     showCategoryBubble('click', 3000);
@@ -568,19 +568,61 @@ window.pet.onShowBubbleRandom(  ()  => showRandomBubble());
     console.warn('No hay personajes descargados. Corre "npm run setup".');
   }
 
-  if (initial.firstRun) showWelcomeSequence();
+  if (initial.firstRun) {
+    showWelcomeSequence();
+  } else {
+    // Aviso de sonidos activados (primera vez que se detectan encendidos)
+    if (initial.showSoundTip) {
+      setTimeout(() => showBubble('🔊 Sonidos activados — podés desactivarlos en Ajustes.', 6500), 3000);
+      setTimeout(showDayBubble, 12000);
+    } else {
+      setTimeout(showDayBubble, 5000);
+    }
+  }
 })();
+
+// ── Frase según el día de la semana ──────────────────────────────────────────
+const DAY_PHRASES = [
+  // 0 Domingo
+  ['Domingo. El lunes ya se asoma desde la esquina. 😬',
+   'El domingo siempre sabe a deuda moral, che.'],
+  // 1 Lunes
+  ['Lunes de nuevo. El universo tiene mala onda con vos. 😒',
+   'Si el lunes te gusta, consultá a un médico. 🩺'],
+  // 2 Martes
+  ['Martes: ni te cases ni te embarques. Laburá nomás.',
+   'El martes es un lunes disfrazado. No te dejés engañar.'],
+  // 3 Miércoles
+  ['Mitad de semana, che. Ya la hiciste... a medias. 😅',
+   'Miércoles: Ecuador de la semana. Igual sufrís.'],
+  // 4 Jueves
+  ['Jueves. Viernes de los pobres. Aguantá un poco más.',
+   'Ya CASI es viernes. No te ilusiones todavía. 😤'],
+  // 5 Viernes
+  ['¡VIERNES! Te lo ganaste arrastrándote desde el lunes. 🎉',
+   "Viernes: el único día que nadie miente al decir '¡por fin!'."],
+  // 6 Sábado
+  ['¡Sábado! Arrancás 50 proyectos y terminás ninguno. 🛋️',
+   'Finde modo pijama. Cerebro apagado, cuerpo en automático.'],
+];
+
+function showDayBubble() {
+  if (!speechBubbles) return;
+  const phrases = DAY_PHRASES[new Date().getDay()] || [];
+  if (phrases.length) showBubble(phrases[Math.floor(Math.random() * phrases.length)]);
+}
 
 // ── Tutorial de bienvenida (primer arranque) ──────────────────────────────────
 function showWelcomeSequence() {
   const steps = [
     '¡Hola! Soy tu nueva mascota de escritorio. 👋',
-    'Hacé clic derecho en mí para cambiar de personaje o sumar más.',
-    'Doble clic en el ícono ▲ (abajo a la derecha) abre los Ajustes.',
+    soundOn ? '🔊 Sonidos activados — podés desactivarlos en Ajustes.' : null,
+    'Hacé clic derecho para cambiar personaje o sumar más.',
+    'Doble clic en ▲ (bandeja) abre los Ajustes.',
     '¡A disfrutar! 🎉',
-  ];
+  ].filter(Boolean);
   let i = 0;
-  const DUR = 5000;
+  const DUR = 5700;
   (function next() {
     if (i >= steps.length) return;
     showBubble(steps[i++], DUR);
