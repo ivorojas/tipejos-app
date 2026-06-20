@@ -180,6 +180,158 @@ function wireListeners() {
   });
 }
 
+// ── Historial de versiones ────────────────────────────────────────────────────
+const CHANGELOG = [
+  {
+    version: '0.2.17',
+    date: '20 jun 2026',
+    changes: [
+      'Historial de versiones con novedades de cada actualización',
+      'Botón "Novedades" en el header de Ajustes',
+    ],
+  },
+  {
+    version: '0.2.16',
+    date: '20 jun 2026',
+    changes: [
+      'Doble clic con umbral propio de 300ms — independiente del OS',
+      'Clicks seguidos pero no intencionales ya no disparan el doble clic',
+    ],
+  },
+  {
+    version: '0.2.15',
+    date: '20 jun 2026',
+    changes: [
+      'Cola de globos: saludo, reacción horaria y frase del día ya no se pisan',
+      'Arrastrar al muñeco ya no dispara un texto falso',
+    ],
+  },
+  {
+    version: '0.2.14',
+    date: '19 jun 2026',
+    changes: [
+      'Instancia única: si la app ya está abierta, abrirla de nuevo no hace nada',
+    ],
+  },
+  {
+    version: '0.2.12',
+    date: '19 jun 2026',
+    changes: [
+      'Botón "Buscar actualización" en el header de Ajustes',
+      'El estado de la actualización se muestra en tiempo real',
+    ],
+  },
+  {
+    version: '0.2.11',
+    date: '19 jun 2026',
+    changes: [
+      'Frases del día y la hora en Modo Cargada — humor ácido sin filtro',
+      'Doble clic exclusivo para mostrar frases de click',
+      'Click simple ya no muestra frases accidentalmente',
+    ],
+  },
+  {
+    version: '0.2.10',
+    date: '19 jun 2026',
+    changes: [
+      'Fix crítico: los muñecos se restauran correctamente al reabrir la app',
+      'Posición, cantidad y personaje guardados en cada cierre',
+    ],
+  },
+  {
+    version: '0.2.9',
+    date: '19 jun 2026',
+    changes: [
+      'Frases por hora con redondeo (9:50 → "Las 10")',
+      'Sonidos activados por defecto, tip al primer arranque',
+      'Frases del día de la semana compartidas entre personajes',
+      'Fix de posición: muñecos ya no aparecen fuera de la pantalla',
+      'Botón "Aplicar" con feedback visual',
+    ],
+  },
+  {
+    version: '0.2.5',
+    date: '19 jun 2026',
+    changes: [
+      'Ícono de la app: Santa en pose de descanso (bandeja + instalador)',
+    ],
+  },
+  {
+    version: '0.2.4',
+    date: '19 jun 2026',
+    changes: [
+      'Modo Cargada: ~90% frases de bardeo + toggle en Ajustes',
+    ],
+  },
+  {
+    version: '0.2.3',
+    date: '19 jun 2026',
+    changes: [
+      'Soporte Mac — descarga universal .dmg vía GitHub Actions',
+      'Fix de parpadeo en animaciones al cambiar frame',
+    ],
+  },
+  {
+    version: '0.2.1',
+    date: '19 jun 2026',
+    changes: [
+      'Fix crítico de color: rojos y azules invertidos en 41 personajes ACS',
+      '50 personajes disponibles',
+    ],
+  },
+  {
+    version: '0.2.0',
+    date: '19 jun 2026',
+    changes: [
+      'Tutorial de bienvenida en el primer arranque',
+      '1555 frases rioplatenses por personaje y categoría',
+      'Sonidos extraídos de los archivos .acs originales',
+    ],
+  },
+  {
+    version: '0.1.0',
+    date: '19 jun 2026',
+    changes: [
+      'Primer lanzamiento público',
+      'Auto-update, instalador NSIS, ícono en bandeja del sistema',
+      'Soporte para múltiples monitores',
+    ],
+  },
+];
+
+let currentVersion = '';
+
+function buildChangelogHTML() {
+  const body = document.getElementById('cl-body');
+  body.innerHTML = '';
+  for (const entry of CHANGELOG) {
+    const isCurrent = entry.version === currentVersion;
+    const li = entry.changes.map((c) => `<li>${c}</li>`).join('');
+    const div = document.createElement('div');
+    div.className = 'cl-entry';
+    div.innerHTML = `
+      <div class="cl-meta">
+        <span class="cl-badge${isCurrent ? ' current' : ''}">v${entry.version}${isCurrent ? ' · actual' : ''}</span>
+        <span class="cl-date">${entry.date}</span>
+      </div>
+      <ul class="cl-changes">${li}</ul>`;
+    body.appendChild(div);
+  }
+}
+
+function wireChangelogModal() {
+  const modal   = document.getElementById('cl-modal');
+  const btnOpen = document.getElementById('btn-changelog');
+  const btnClose= document.getElementById('btn-cl-close');
+
+  btnOpen.addEventListener('click', () => {
+    buildChangelogHTML();
+    modal.classList.add('open');
+  });
+  btnClose.addEventListener('click', () => modal.classList.remove('open'));
+  modal.addEventListener('click', (e) => { if (e.target === modal) modal.classList.remove('open'); });
+}
+
 // ── Botón de actualización ────────────────────────────────────────────────────
 function wireUpdateButton(isWindows) {
   const btn = document.getElementById('btn-update');
@@ -215,6 +367,7 @@ function wireUpdateButton(isWindows) {
   agents     = data.agents;
   activePets = data.activePets;
 
+  currentVersion = data.version || '';
   const verEl = document.getElementById('app-version');
   if (verEl && data.version) verEl.textContent = 'v' + data.version;
 
@@ -223,6 +376,7 @@ function wireUpdateButton(isWindows) {
   renderCharGrid(agents);
   wireListeners();
   wireUpdateButton(data.platform === 'win32');
+  wireChangelogModal();
 
   window.settings.onPetsChanged((pets) => renderActivePets(pets));
 })();
