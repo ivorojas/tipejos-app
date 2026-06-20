@@ -4,7 +4,7 @@ Mascotas de escritorio con los clásicos asistentes de Microsoft Office
 (Clippy, Merlin, Rover, El Genio y muchos más). Flotan en tu pantalla,
 animan, reaccionan al mouse y te hacen compañía.
 
-**51 personajes** · Windows · se actualiza solo
+**50 personajes** · Windows · se actualiza solo
 
 ---
 

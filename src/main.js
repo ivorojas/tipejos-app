@@ -62,7 +62,7 @@ const FAMOUS_ORDER = [
   // Personajes Microsoft Agent adicionales
   'Robby', 'Dolphin', 'MonkeyKing', 'Saeko',
   // Otros conocidos
-  'BillG', 'Electra', 'Victor', 'EmotiGuy', 'Qmark', 'Santa',
+  'BillG', 'Electra', 'Victor', 'Qmark', 'Santa',
   'Becky', 'Wartnose', 'Wabbit', 'E-man', 'E-woman',
 ];
 
