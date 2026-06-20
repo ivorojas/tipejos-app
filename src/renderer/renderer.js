@@ -341,17 +341,47 @@ function pickPhrase(category) {
 }
 function pick(list) { return list[Math.floor(Math.random() * list.length)]; }
 
-let bubbleTimer = null;
+// ── Cola de globos ────────────────────────────────────────────────────────────
+// showBubble()  → inmediato (usuario): descarta cola, muestra ya.
+// queueBubble() → encolado (automático): espera a que termine el actual.
+let bubbleTimer   = null;
+let bubbleQ       = [];
+let bubbleRunning = false;
+
 function showBubble(text, duration = 5200) {
   if (!speechBubbles) return;
+  bubbleQ       = [];
+  bubbleRunning = false;
   clearTimeout(bubbleTimer);
-  bubbleText.textContent = text;
-  bubbleEl.classList.add('visible');
-  bubbleTimer = setTimeout(() => bubbleEl.classList.remove('visible'), duration);
+  _playBubble(text, duration);
 }
 
-function showRandomBubble() { showBubble(pickPhrase('idle')); }
-function showCategoryBubble(category, duration) { showBubble(pickPhrase(category), duration); }
+function queueBubble(text, duration = 5200) {
+  if (!speechBubbles) return;
+  bubbleQ.push({ text, duration });
+  if (!bubbleRunning) _drainQ();
+}
+
+function _playBubble(text, duration) {
+  bubbleRunning          = true;
+  bubbleText.textContent = text;
+  bubbleEl.classList.add('visible');
+  bubbleTimer = setTimeout(() => {
+    bubbleEl.classList.remove('visible');
+    bubbleRunning = false;
+    if (bubbleQ.length) setTimeout(_drainQ, 700);
+  }, duration);
+}
+
+function _drainQ() {
+  if (bubbleRunning || !bubbleQ.length) return;
+  const { text, duration } = bubbleQ.shift();
+  _playBubble(text, duration);
+}
+
+// Automáticos usan queueBubble; usuario usa showBubble directamente.
+function showRandomBubble()           { queueBubble(pickPhrase('idle')); }
+function showCategoryBubble(cat, dur) { queueBubble(pickPhrase(cat), dur); }
 
 // ── Reacciones por horario ────────────────────────────────────────────────────
 function checkTimeReactions() {
@@ -364,7 +394,7 @@ function checkTimeReactions() {
   } else if (h >= 22 || h < 5) {
     setTimeout(() => showCategoryBubble('night'), 3000);
   } else if (h === 12 || h === 13) {
-    setTimeout(() => showBubble('¡Es hora de almorzar! 🍽️'), 2000);
+    setTimeout(() => queueBubble('¡Es hora de almorzar! 🍽️'), 2000);
   }
 }
 
@@ -467,6 +497,7 @@ function isOpaqueAt(x, y) {
 
 // ── Arrastrar ────────────────────────────────────────────────────────────────
 let dragging   = false;
+let dragMoved  = false; // true si el mouse se movió durante el arrastre actual
 let dragOffset = { x: 0, y: 0 };
 let ignoring   = true;
 
@@ -480,6 +511,7 @@ hit.addEventListener('mousedown', (e) => {
   if (e.button !== 0) return;
   cancelWanderAnimation();
   dragging   = true;
+  dragMoved  = false; // se resetea en cada nuevo press
   dragOffset = { x: e.clientX, y: e.clientY };
   hit.classList.add('dragging');
   e.preventDefault();
@@ -487,6 +519,8 @@ hit.addEventListener('mousedown', (e) => {
 
 window.addEventListener('mousemove', (e) => {
   if (dragging) {
+    if (Math.abs(e.clientX - dragOffset.x) > 4 || Math.abs(e.clientY - dragOffset.y) > 4)
+      dragMoved = true;
     petX = e.screenX - dragOffset.x;
     petY = e.screenY - dragOffset.y;
     window.pet.setPosition(petX, petY);
@@ -502,7 +536,8 @@ window.addEventListener('mouseup', () => {
 
 // ── Interacción: doble clic y clic derecho ───────────────────────────────────
 hit.addEventListener('dblclick', () => {
-  if (speechBubbles) showCategoryBubble('click', 3700);
+  if (dragMoved) return; // ignorar si fue arrastre, no doble clic real
+  if (speechBubbles) showBubble(pickPhrase('click'), 3700); // inmediato
 });
 
 hit.addEventListener('contextmenu', (e) => {
@@ -513,6 +548,7 @@ hit.addEventListener('contextmenu', (e) => {
 // ── Clic: triple clic = easter egg (clic simple no muestra frase; solo doble clic) ──
 let clickHistory = [];
 hit.addEventListener('click', () => {
+  if (dragMoved) { clickHistory = []; return; } // fue arrastre → no contar como clic
   const now = Date.now();
   clickHistory = clickHistory.filter((t) => now - t < 2000);
   clickHistory.push(now);
@@ -522,7 +558,7 @@ hit.addEventListener('click', () => {
       .filter((n) => agentData?.animations[n]);
     if (specials.length > 0)
       playAnimation(specials[Math.floor(Math.random() * specials.length)], loopIdle);
-    if (speechBubbles) showCategoryBubble('click', 3700);
+    if (speechBubbles) showBubble(pickPhrase('click'), 3700); // inmediato
   }
 });
 
@@ -570,7 +606,7 @@ window.pet.onShowBubbleRandom(  ()  => showRandomBubble());
     lastShownHour = getRoundedHour(); // no mostrar hora durante la bienvenida
   } else {
     if (initial.showSoundTip) {
-      setTimeout(() => showBubble('🔊 Sonidos activados — podés desactivarlos en Ajustes.', 6500), 3000);
+      setTimeout(() => queueBubble('🔊 Sonidos activados — podés desactivarlos en Ajustes.', 6500), 3000);
       setTimeout(showDayBubble,  12000);
       setTimeout(showHourBubble, 19000);
     } else {
@@ -609,7 +645,7 @@ const DAY_PHRASES = [
 function showDayBubble() {
   if (!speechBubbles) return;
   const phrases = DAY_PHRASES[new Date().getDay()] || [];
-  if (phrases.length) showBubble(phrases[Math.floor(Math.random() * phrases.length)]);
+  if (phrases.length) queueBubble(phrases[Math.floor(Math.random() * phrases.length)]);
 }
 
 // ── Frase según la hora del día ───────────────────────────────────────────────
@@ -650,7 +686,7 @@ function getRoundedHour() {
 function showHourBubble() {
   if (!speechBubbles) return;
   const h = getRoundedHour();
-  if (HOUR_PHRASES[h]) showBubble(HOUR_PHRASES[h]);
+  if (HOUR_PHRASES[h]) queueBubble(HOUR_PHRASES[h]);
   lastShownHour = h;
 }
 
