@@ -486,9 +486,7 @@ ipcMain.on('settings:close',      ()               => { if (settingsWin) setting
 // Si ya hay una instancia corriendo, la nueva se mata sola y la existente
 // sube al frente (abre ajustes) en lugar de abrir un proceso duplicado.
 if (!app.requestSingleInstanceLock()) {
-  app.quit();
-} else {
-  app.on('second-instance', () => openSettings());
+  app.quit(); // ya hay una instancia corriendo, salir sin hacer ruido
 }
 
 // ─── Ciclo de vida ─────────────────────────────────────────────────────────────
