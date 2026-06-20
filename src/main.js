@@ -24,6 +24,7 @@ const DEFAULT_CONFIG = {
   mouseReactions:    true,
   recentCharacters:  [],   // últimos personajes usados (máx 5)
   speechBubbles:  true,
+  cargadaMode:    true,    // Modo Cargada: el muñeco te bardea (~90% de las frases)
   startWithWindows: false,
   hasSeenWelcome: false,   // mostró el tutorial de bienvenida
   pets:           [],
@@ -201,6 +202,7 @@ function applyToPets(partial) {
     if (partial.timeReactions!== undefined) win.webContents.send('set-time-reactions',partial.timeReactions);
     if (partial.mouseReactions!==undefined) win.webContents.send('set-mouse-reactions',partial.mouseReactions);
     if (partial.speechBubbles!== undefined) win.webContents.send('set-speech-bubbles',partial.speechBubbles);
+    if (partial.cargadaMode  !== undefined) win.webContents.send('set-cargada-mode',  partial.cargadaMode);
   }
   if (partial.startWithWindows !== undefined) {
     app.setLoginItemSettings({ openAtLogin: partial.startWithWindows });
@@ -354,6 +356,7 @@ ipcMain.handle('get-initial', (event) => {
     timeReactions:  cfg.timeReactions,
     mouseReactions: cfg.mouseReactions,
     speechBubbles:  cfg.speechBubbles,
+    cargadaMode:    cfg.cargadaMode,
     firstRun,
     screenBounds:   { x: workArea.x, y: workArea.y, width: workArea.width, height: workArea.height },
     petX:           winX,

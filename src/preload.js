@@ -20,6 +20,7 @@ contextBridge.exposeInMainWorld('pet', {
   onSetTimeReactions:  (cb) => ipcRenderer.on('set-time-reactions', (_e, v) => cb(v)),
   onSetMouseReactions: (cb) => ipcRenderer.on('set-mouse-reactions',(_e, v) => cb(v)),
   onSetSpeechBubbles:  (cb) => ipcRenderer.on('set-speech-bubbles', (_e, v) => cb(v)),
+  onSetCargadaMode:    (cb) => ipcRenderer.on('set-cargada-mode',   (_e, v) => cb(v)),
   onDoTrick:           (cb) => ipcRenderer.on('do-trick',           ()       => cb()),
   onShowBubbleRandom:  (cb) => ipcRenderer.on('show-bubble-random', ()       => cb()),
 });

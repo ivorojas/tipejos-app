@@ -39,6 +39,7 @@ let wanderEnabled   = false;
 let timeReactions   = true;
 let mouseReactions  = true;
 let speechBubbles   = true;
+let cargadaMode     = true;   // Modo Cargada: ~90% frases que te cargan, ~10% suaves
 let currentCharName = '';
 
 // ── Posición de la ventana (para wandering) ──────────────────────────────────
@@ -314,12 +315,29 @@ const GENERIC = {
   night:    ['Es tarde, andá a dormir. 🌙', 'A la cama, dale.'],
 };
 
-// Devuelve la lista de frases de una categoría para el personaje actual,
-// cayendo a las genéricas si el personaje no tiene esa categoría.
-function phrasesFor(category) {
+// Devuelve { roast, soft } de una categoría para el personaje actual.
+// Acepta el formato nuevo ({roast,soft}) y el viejo (array plano = todo roast).
+function catSets(category) {
   const set = ALL_PHRASES[currentCharName];
-  const list = set && set[category] && set[category].length ? set[category] : GENERIC[category];
-  return list || GENERIC.idle;
+  const entry = set && set[category];
+  if (!entry) return { roast: [], soft: GENERIC[category] || GENERIC.idle || [] };
+  if (Array.isArray(entry)) return { roast: entry, soft: [] };
+  return { roast: entry.roast || [], soft: entry.soft || [] };
+}
+
+// Elige una frase respetando el Modo Cargada: ON => ~90% roast / ~10% soft;
+// OFF => sólo suaves (y si no hay, cae a roast). Siempre con fallback a genéricas.
+function pickPhrase(category) {
+  const { roast, soft } = catSets(category);
+  let pool;
+  if (cargadaMode) {
+    pool = (roast.length && (Math.random() < 0.9 || !soft.length)) ? roast
+         : (soft.length ? soft : roast);
+  } else {
+    pool = soft.length ? soft : roast;
+  }
+  if (!pool || !pool.length) pool = GENERIC[category] || GENERIC.idle;
+  return pick(pool);
 }
 function pick(list) { return list[Math.floor(Math.random() * list.length)]; }
 
@@ -332,8 +350,8 @@ function showBubble(text, duration = 4500) {
   bubbleTimer = setTimeout(() => bubbleEl.classList.remove('visible'), duration);
 }
 
-function showRandomBubble() { showBubble(pick(phrasesFor('idle'))); }
-function showCategoryBubble(category, duration) { showBubble(pick(phrasesFor(category)), duration); }
+function showRandomBubble() { showBubble(pickPhrase('idle')); }
+function showCategoryBubble(category, duration) { showBubble(pickPhrase(category), duration); }
 
 // ── Reacciones por horario ────────────────────────────────────────────────────
 function checkTimeReactions() {
@@ -523,6 +541,7 @@ window.pet.onSetWander(         (v) => { wanderEnabled = v; if (v) scheduleWande
 window.pet.onSetTimeReactions(  (v) => { timeReactions = v; });
 window.pet.onSetMouseReactions( (v) => { mouseReactions= v; });
 window.pet.onSetSpeechBubbles(  (v) => { speechBubbles = v; if (!v) bubbleEl.classList.remove('visible'); });
+window.pet.onSetCargadaMode(    (v) => { cargadaMode = v; });
 window.pet.onDoTrick(           ()  => { if (funNames.length) playAnimation(funNames[Math.floor(Math.random()*funNames.length)], loopIdle); });
 window.pet.onShowBubbleRandom(  ()  => showRandomBubble());
 
@@ -537,6 +556,7 @@ window.pet.onShowBubbleRandom(  ()  => showRandomBubble());
   timeReactions  = initial.timeReactions  !== false;
   mouseReactions = initial.mouseReactions !== false;
   speechBubbles  = initial.speechBubbles  !== false;
+  cargadaMode    = initial.cargadaMode    !== false;
   if (initial.screenBounds) screenBounds = initial.screenBounds;
   petX = initial.petX ?? 0;
   petY = initial.petY ?? 0;

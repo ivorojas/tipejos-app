@@ -100,6 +100,7 @@ function readForm() {
     timeReactions:   document.getElementById('time-react').checked,
     mouseReactions:  document.getElementById('mouse-react').checked,
     speechBubbles:   document.getElementById('speech-bubbles').checked,
+    cargadaMode:     document.getElementById('cargada-mode').checked,
     startWithWindows:document.getElementById('startup').checked,
   };
 }
@@ -126,6 +127,7 @@ function populateForm(c) {
   document.getElementById('time-react').checked     = c.timeReactions  !== false;
   document.getElementById('mouse-react').checked    = c.mouseReactions !== false;
   document.getElementById('speech-bubbles').checked = c.speechBubbles  !== false;
+  document.getElementById('cargada-mode').checked   = c.cargadaMode    !== false;
   document.getElementById('startup').checked        = !!c.startWithWindows;
 
   // Modo de comportamiento
