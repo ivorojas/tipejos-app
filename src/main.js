@@ -485,6 +485,80 @@ ipcMain.on('settings:add-pet',    (_e, character) => addPet(character));
 ipcMain.on('settings:remove-pet', (_e, wcId)      => removePet(wcId));
 ipcMain.on('settings:close',      ()               => { if (settingsWin) settingsWin.close(); });
 
+// ─── waifu2x AI upscaling (on-demand, cache en userData) ─────────────────────
+const { execFile } = require('child_process');
+const AI_CACHE_DIR = path.join(app.getPath('userData'), 'ai-sprites');
+const aiInProgress = new Set(); // personajes en proceso activo
+
+// Ruta al binario: fuera del asar en producción, directo en dev.
+function waifu2xExe() {
+  const rel = path.join('assets', 'waifu2x', 'waifu2x-ncnn-vulkan.exe');
+  if (app.isPackaged)
+    return path.join(process.resourcesPath, 'app.asar.unpacked', rel);
+  return path.join(__dirname, '..', rel);
+}
+function waifu2xModels() {
+  const rel = path.join('assets', 'waifu2x', 'models-cunet');
+  if (app.isPackaged)
+    return path.join(process.resourcesPath, 'app.asar.unpacked', rel);
+  return path.join(__dirname, '..', rel);
+}
+
+// Ruta en cache para la versión AI de un personaje.
+function aiCachePath(name) {
+  return path.join(AI_CACHE_DIR, name, 'map@2x.png');
+}
+
+// IPC: ¿existe ya la versión AI para este personaje?
+ipcMain.handle('sprite:check-ai', (_e, name) => {
+  const p = aiCachePath(name);
+  return { exists: fs.existsSync(p), filePath: p };
+});
+
+// IPC: generar versión AI en background (fire-and-forget).
+ipcMain.on('sprite:request-ai', (_e, name) => {
+  if (aiInProgress.has(name)) return; // ya en proceso
+
+  const srcPath = path.join(AGENTS_DIR, name, 'map.png');
+  if (!fs.existsSync(srcPath)) return;
+
+  const exe = waifu2xExe();
+  if (!fs.existsSync(exe)) return; // no disponible en esta plataforma
+
+  const outDir  = path.join(AI_CACHE_DIR, name);
+  const outPath = aiCachePath(name);
+  if (fs.existsSync(outPath)) {
+    // ya existe: notificar al renderer que lo use
+    broadcastAiReady(name, outPath);
+    return;
+  }
+
+  fs.mkdirSync(outDir, { recursive: true });
+  aiInProgress.add(name);
+
+  const args = [
+    '-i', srcPath,
+    '-o', outPath,
+    '-n', '1',
+    '-s', '2',
+    '-m', waifu2xModels(),
+    '-f', 'png',
+  ];
+
+  execFile(exe, args, { windowsHide: true }, (err) => {
+    aiInProgress.delete(name);
+    if (!err && fs.existsSync(outPath)) broadcastAiReady(name, outPath);
+  });
+});
+
+// Notifica a todos los pets activos que la versión AI de un personaje está lista.
+function broadcastAiReady(name, filePath) {
+  for (const { win } of pets.values()) {
+    if (!win.isDestroyed())
+      win.webContents.send('sprite:ai-ready', name, filePath);
+  }
+}
+
 // ─── Instancia única ──────────────────────────────────────────────────────────
 // Si ya hay una instancia corriendo, la nueva se mata sola y la existente
 // sube al frente (abre ajustes) en lugar de abrir un proceso duplicado.

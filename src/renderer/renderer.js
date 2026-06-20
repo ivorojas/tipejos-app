@@ -110,14 +110,25 @@ async function loadAgent(name) {
   loadScript(base + 'sounds-mp3.js').catch(() => { soundData = {}; });
   loadMapPixels(base + 'map.png', myToken);
 
-  // ¿Existe versión de doble resolución? Si sí, usarla con render suave.
-  // El hit-test y las coordenadas siguen usando el map.png original (mapW/mapH),
-  // así que solo cambia la nitidez visual: cero impacto en posiciones/clicks.
+  // Primero: usar map@2x.png (Scale2x) de assets, si existe.
   probeImage(base + 'map@2x.png').then((ok) => {
     if (myToken !== loadToken || !ok) return;
     displayMapURL = base + 'map@2x.png';
     displaySmooth = true;
     applyDisplayMap();
+  });
+
+  // Segundo: consultar si ya hay versión AI en cache (userData).
+  // Si existe, la usa; si no, pide que se genere en background.
+  window.pet.checkAiSprite(name).then(({ exists, filePath }) => {
+    if (myToken !== loadToken) return;
+    if (exists) {
+      displayMapURL = 'file:///' + filePath.replace(/\\/g, '/');
+      displaySmooth = true;
+      applyDisplayMap();
+    } else {
+      window.pet.requestAiSprite(name); // fire-and-forget
+    }
   });
 }
 
@@ -661,6 +672,12 @@ window.pet.onSetCargadaMode(    (v) => { cargadaMode = v; });
 window.pet.onSetBubbleFontSize( (v) => { document.documentElement.style.setProperty('--bubble-fs', v + 'px'); });
 window.pet.onDoTrick(           ()  => { if (funNames.length) playAnimation(funNames[Math.floor(Math.random()*funNames.length)], loopIdle); });
 window.pet.onShowBubbleRandom(  ()  => showRandomBubble());
+window.pet.onAiSpriteReady((name, filePath) => {
+  if (name !== currentCharName) return;
+  displayMapURL = 'file:///' + filePath.replace(/\\/g, '/');
+  displaySmooth = true;
+  applyDisplayMap();
+});
 
 (async function init() {
   const initial = await window.pet.getInitial();

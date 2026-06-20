@@ -177,6 +177,15 @@ function wireListeners() {
 // ── Historial de versiones ────────────────────────────────────────────────────
 const CHANGELOG = [
   {
+    version: '0.2.22',
+    date: '20 jun 2026',
+    changes: [
+      'Sprites con IA (waifu2x) para todos los personajes: se generan en background la primera vez',
+      'Primera apertura procesa el sprite en tu PC y lo guarda; las siguientes son instantáneas',
+      'La mejora de resolución ahora aplica a los 50 personajes, no solo a 8',
+    ],
+  },
+  {
     version: '0.2.21',
     date: '20 jun 2026',
     changes: [

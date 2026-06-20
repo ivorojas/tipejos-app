@@ -24,4 +24,8 @@ contextBridge.exposeInMainWorld('pet', {
   onSetBubbleFontSize: (cb) => ipcRenderer.on('set-bubble-font',    (_e, v) => cb(v)),
   onDoTrick:           (cb) => ipcRenderer.on('do-trick',           ()       => cb()),
   onShowBubbleRandom:  (cb) => ipcRenderer.on('show-bubble-random', ()       => cb()),
+  // AI upscaling on-demand
+  checkAiSprite:       (name) => ipcRenderer.invoke('sprite:check-ai', name),
+  requestAiSprite:     (name) => ipcRenderer.send('sprite:request-ai', name),
+  onAiSpriteReady:     (cb)   => ipcRenderer.on('sprite:ai-ready', (_e, name, filePath) => cb(name, filePath)),
 });
