@@ -534,31 +534,46 @@ window.addEventListener('mouseup', () => {
   if (dragging) { dragging = false; hit.classList.remove('dragging'); }
 });
 
-// ── Interacción: doble clic y clic derecho ───────────────────────────────────
-hit.addEventListener('dblclick', () => {
-  if (dragMoved) return; // ignorar si fue arrastre, no doble clic real
-  if (speechBubbles) showBubble(pickPhrase('click'), 3700); // inmediato
-});
-
+// ── Interacción: clics y clic derecho ────────────────────────────────────────
 hit.addEventListener('contextmenu', (e) => {
   e.preventDefault();
   window.pet.showContextMenu();
 });
 
-// ── Clic: triple clic = easter egg (clic simple no muestra frase; solo doble clic) ──
+// Detección propia de doble clic (no delegar al OS para tener umbral consistente).
+// DBLCLICK_MS: dos clicks consecutivos dentro de este margen = doble clic.
+// Triple clic (easter egg): tres clicks simples —ningún par dentro de DBLCLICK_MS—
+// dentro de 2s. Ej: click… 500ms… click… 500ms… click.
+const DBLCLICK_MS = 300;
+let lastClickMs  = 0;
 let clickHistory = [];
+
 hit.addEventListener('click', () => {
-  if (dragMoved) { clickHistory = []; return; } // fue arrastre → no contar como clic
+  if (dragMoved) { lastClickMs = 0; clickHistory = []; return; }
+
   const now = Date.now();
+  const gap = now - lastClickMs;
+  lastClickMs = now;
+
+  // ── Doble clic ──────────────────────────────────────────────────────────────
+  if (gap > 0 && gap < DBLCLICK_MS) {
+    lastClickMs  = 0; // evitar que el siguiente click sea falso dblclick
+    clickHistory = [];
+    if (speechBubbles) showBubble(pickPhrase('click'), 3700);
+    return;
+  }
+
+  // ── Triple clic (easter egg) ─────────────────────────────────────────────────
   clickHistory = clickHistory.filter((t) => now - t < 2000);
   clickHistory.push(now);
   if (clickHistory.length >= 3) {
     clickHistory = [];
+    lastClickMs  = 0;
     const specials = ['Magic','Confused','Congratulate','Wave','Thinking','Surprised']
       .filter((n) => agentData?.animations[n]);
     if (specials.length > 0)
       playAnimation(specials[Math.floor(Math.random() * specials.length)], loopIdle);
-    if (speechBubbles) showBubble(pickPhrase('click'), 3700); // inmediato
+    if (speechBubbles) showBubble(pickPhrase('click'), 3700);
   }
 });
 
