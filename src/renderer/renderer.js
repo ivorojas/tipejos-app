@@ -645,10 +645,9 @@ function isOpaqueAt(x, y) {
 }
 
 // ── Arrastrar ────────────────────────────────────────────────────────────────
-let dragging   = false;
-let dragMoved  = false; // true si el mouse se movió durante el arrastre actual
-let dragOffset = { x: 0, y: 0 };
-let ignoring   = true;
+let dragging  = false;
+let dragMoved = false; // true si el mouse se movió durante el arrastre actual
+let ignoring  = true;
 
 function setIgnore(v) {
   if (v === ignoring) return;
@@ -659,20 +658,26 @@ function setIgnore(v) {
 hit.addEventListener('mousedown', (e) => {
   if (e.button !== 0) return;
   cancelWanderAnimation();
-  dragging   = true;
-  dragMoved  = false; // se resetea en cada nuevo press
-  dragOffset = { x: e.clientX, y: e.clientY };
+  dragging  = true;
+  dragMoved = false;
+  // Derivamos la posición de la ventana SOLO de coordenadas CSS para evitar
+  // el bug en notebooks con DPI ≠ 100%: win.getPosition() devuelve píxeles
+  // físicos pero e.screenX/clientX están en píxeles lógicos, lo que causaba
+  // que el personaje se moviera en dirección contraria al mouse.
+  petX = e.screenX - e.clientX;
+  petY = e.screenY - e.clientY;
   hit.classList.add('dragging');
   e.preventDefault();
 });
 
 window.addEventListener('mousemove', (e) => {
   if (dragging) {
-    if (Math.abs(e.clientX - dragOffset.x) > 4 || Math.abs(e.clientY - dragOffset.y) > 4)
-      dragMoved = true;
-    petX = e.screenX - dragOffset.x;
-    petY = e.screenY - dragOffset.y;
-    window.pet.setPosition(petX, petY);
+    // e.movementX/Y son deltas en píxeles CSS — siempre en el mismo espacio
+    // de coordenadas que e.screenX, sin riesgo de mezcla de unidades.
+    if (e.movementX || e.movementY) dragMoved = true;
+    petX += e.movementX;
+    petY += e.movementY;
+    window.pet.setPosition(Math.round(petX), Math.round(petY));
     return;
   }
   setIgnore(!isOpaqueAt(e.clientX, e.clientY));

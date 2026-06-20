@@ -228,6 +228,13 @@ function wireListeners() {
 // ── Historial de versiones ────────────────────────────────────────────────────
 const CHANGELOG = [
   {
+    version: '0.2.30',
+    date: '20 jun 2026',
+    changes: [
+      'Fix definitivo del arrastre en notebooks con DPI ≠ 100%: reemplazado el sistema de coordenadas absolutas (que mezclaba píxeles físicos y lógicos) por deltas puros con movementX/Y',
+    ],
+  },
+  {
     version: '0.2.29',
     date: '20 jun 2026',
     changes: [
