@@ -1,6 +1,6 @@
 {
   "name": "tipejos",
-  "version": "0.2.2",
+  "version": "0.2.3",
   "description": "Mascotas de escritorio con los clásicos asistentes de Microsoft Office (Clippy, Merlin, Rover, El Genio...)",
   "main": "src/main.js",
   "scripts": {
@@ -47,6 +47,20 @@
           ]
         }
       ]
+    },
+    "mac": {
+      "icon": "assets/icon-mac.png",
+      "category": "public.app-category.entertainment",
+      "identity": null,
+      "target": [
+        {
+          "target": "dmg",
+          "arch": [
+            "universal"
+          ]
+        }
+      ],
+      "artifactName": "Tipejos-Mac-${version}.dmg"
     },
     "nsis": {
       "oneClick": true,

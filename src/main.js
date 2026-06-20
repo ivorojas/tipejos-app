@@ -530,6 +530,9 @@ function maybeCaptureScreenshots() {
 
 function setupAutoUpdate() {
   if (!autoUpdater || !app.isPackaged) return;
+  // El auto-update solo funciona en Windows: en Mac requiere firma de código
+  // (Apple Developer, de pago) y sin ella electron-updater no puede aplicar nada.
+  if (process.platform !== 'win32') return;
 
   autoUpdater.autoDownload = true;
   autoUpdater.autoInstallOnAppQuit = true;

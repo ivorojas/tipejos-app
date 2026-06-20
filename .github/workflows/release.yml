@@ -1,0 +1,41 @@
+name: Build & Release
+
+# Se dispara al pushear un tag tipo v0.2.3.
+# Buildea Windows (.exe) en un runner Windows y Mac (.dmg universal) en un runner
+# macOS, y sube los dos instaladores al mismo Release de GitHub.
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: windows-latest
+          - os: macos-latest
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install deps
+        run: npm ci
+
+      - name: Build & publish
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # App sin firma: no intentar descubrir identidad de firma en macOS.
+          CSC_IDENTITY_AUTO_DISCOVERY: false
+        run: npx electron-builder --publish always

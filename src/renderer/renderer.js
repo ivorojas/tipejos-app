@@ -242,9 +242,10 @@ function step(a) {
   if (next == null || next >= a.frames.length) { finish(a); return; }
   a.index = next;
   const f = a.frames[next];
-  drawFrame(f.images);
+  const dur = f.duration != null ? f.duration : 100;
+  if (dur > 0) drawFrame(f.images); // frames con duration:0 son transiciones invisibles
   if (soundOn && f.sound != null && soundData[f.sound]) playSound(soundData[f.sound]);
-  a.timer = setTimeout(() => step(a), f.duration || 100);
+  a.timer = setTimeout(() => step(a), dur);
 }
 
 function finish(a) {

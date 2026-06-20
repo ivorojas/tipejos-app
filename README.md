@@ -4,21 +4,43 @@ Mascotas de escritorio con los clásicos asistentes de Microsoft Office
 (Clippy, Merlin, Rover, El Genio y muchos más). Flotan en tu pantalla,
 animan, reaccionan al mouse y te hacen compañía.
 
-**50 personajes** · Windows · se actualiza solo
+**50 personajes** · Windows y Mac · se actualiza solo (Windows)
 
 ---
 
 ## 📥 Descargar (para usar)
 
-1. Andá a la pestaña **[Releases](../../releases/latest)**
-2. Bajá el archivo **`Tipejos-Setup-x.x.x.exe`**
-3. Doble clic → se instala solo y crea un acceso directo en el escritorio
+Andá a la pestaña **[Releases](../../releases/latest)** y bajá el archivo
+según tu sistema.
+
+### 🪟 Windows
+
+1. Bajá **`Tipejos-Setup-x.x.x.exe`**
+2. Doble clic → se instala solo y crea un acceso directo en el escritorio
 
 > Windows puede mostrar un aviso de "editor desconocido" (SmartScreen).
 > Es normal en apps sin firma digital de pago: **Más información → Ejecutar de todas formas**.
 
 Una vez instalado, **se actualiza solo**: cada vez que sale una versión
 nueva, la app la baja y te pregunta si querés reiniciar para aplicarla.
+
+### 🍎 Mac
+
+1. Bajá **`Tipejos-Mac-x.x.x.dmg`**
+2. Doble clic en el `.dmg` y **arrastrá Tipejos a la carpeta Aplicaciones**
+3. **La primera vez** (y solo la primera), macOS va a decir que la app es de
+   un "desarrollador no identificado". Es normal: la app no está firmada
+   (firmarla cuesta una cuenta de Apple paga). Para abrirla igual:
+   - **Clic derecho** sobre Tipejos → **Abrir** → en el cartel, **Abrir** de nuevo.
+   - Si tu Mac es nueva (macOS Sequoia o posterior) y no aparece la opción:
+     andá a **Ajustes del Sistema → Privacidad y Seguridad**, bajá hasta el
+     aviso sobre Tipejos y tocá **"Abrir igualmente"**.
+
+   Después de esa primera vez, abre normal con doble clic para siempre.
+
+> En Mac **no hay auto-update** (también requiere firma de pago). Cuando salga
+> una versión nueva, volvé a [Releases](../../releases/latest) y bajá el `.dmg`
+> nuevo. La app funciona igual de bien que en Windows.
 
 ## 🎮 Uso
 
@@ -36,14 +58,22 @@ npm start          # correr en modo desarrollo
 npm run dist       # generar el instalador en dist/
 ```
 
-Para publicar una versión nueva (se actualiza sola en todas las compus):
+Para publicar una versión nueva (Windows **y** Mac salen solos vía GitHub Actions):
 
 ```bash
-# 1. subir el número de "version" en package.json (ej: 0.1.0 -> 0.1.1)
-# 2. build + publish a GitHub Releases:
-$env:GH_TOKEN = (gh auth token)
-npx electron-builder --publish always
+# 1. subir el número de "version" en package.json (ej: 0.2.3 -> 0.2.4)
+# 2. commitear y pushear un tag con ese número:
+git commit -am "v0.2.4"
+git push
+git tag v0.2.4
+git push origin v0.2.4
 ```
+
+El push del tag dispara el workflow `.github/workflows/release.yml`, que
+buildea el `.exe` (Windows) y el `.dmg` (Mac universal) en runners de GitHub
+y los sube al mismo Release. No hace falta tener una Mac.
+
+Para buildear solo Windows localmente sin publicar: `npm run dist`.
 
 ## Personajes
 
