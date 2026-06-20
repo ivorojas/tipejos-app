@@ -177,6 +177,15 @@ function wireListeners() {
 // ── Historial de versiones ────────────────────────────────────────────────────
 const CHANGELOG = [
   {
+    version: '0.2.20',
+    date: '20 jun 2026',
+    changes: [
+      'Sprites en alta resolución (2×) para 8 personajes conocidos: Clippy, Merlin, Genie, Rover, Links, Peedy, Bonzi y Dot',
+      'Se ven más nítidos al agrandarlos y con bordes más suaves a tamaño normal',
+      'Si funciona bien, se aplicará al resto de los personajes',
+    ],
+  },
+  {
     version: '0.2.19',
     date: '20 jun 2026',
     changes: [

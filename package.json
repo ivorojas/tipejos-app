@@ -1,6 +1,6 @@
 {
   "name": "tipejos",
-  "version": "0.2.19",
+  "version": "0.2.20",
   "description": "Mascotas de escritorio con los clásicos asistentes de Microsoft Office (Clippy, Merlin, Rover, El Genio...)",
   "main": "src/main.js",
   "scripts": {
@@ -9,6 +9,7 @@
     "download-assets": "node scripts/download-agents.js",
     "defringe": "node scripts/defringe.js",
     "make-icon": "node scripts/make-icon.js",
+    "upscale": "node --max-old-space-size=2048 scripts/upscale-2x.js",
     "dist": "electron-builder"
   },
   "author": "",

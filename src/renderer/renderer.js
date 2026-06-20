@@ -23,6 +23,8 @@ let currentBase    = '';
 let injectedScripts = [];
 let mapData        = null;
 let mapW = 0, mapH = 0;
+let displayMapURL  = '';     // imagen de fondo actual (map.png o map@2x.png)
+let displaySmooth  = false;  // true = render suave (assets 2×); false = pixelado
 let curFrameImages = null;
 let anim           = null;
 let idleNames      = [];
@@ -95,6 +97,10 @@ async function loadAgent(name) {
   const base = `../../assets/agents/${name}/`;
   currentBase = base;
 
+  // Imagen de display por defecto: original, nítido (pixelado).
+  displayMapURL = base + 'map.png';
+  displaySmooth = false;
+
   await loadScript(base + 'agent.js');
   if (myToken !== loadToken) return;
   if (!agentData) throw new Error('agent.js no registró datos para ' + name);
@@ -103,6 +109,34 @@ async function loadAgent(name) {
 
   loadScript(base + 'sounds-mp3.js').catch(() => { soundData = {}; });
   loadMapPixels(base + 'map.png', myToken);
+
+  // ¿Existe versión de doble resolución? Si sí, usarla con render suave.
+  // El hit-test y las coordenadas siguen usando el map.png original (mapW/mapH),
+  // así que solo cambia la nitidez visual: cero impacto en posiciones/clicks.
+  probeImage(base + 'map@2x.png').then((ok) => {
+    if (myToken !== loadToken || !ok) return;
+    displayMapURL = base + 'map@2x.png';
+    displaySmooth = true;
+    applyDisplayMap();
+  });
+}
+
+// Resuelve true/false según si una imagen carga (existe) o no.
+function probeImage(src) {
+  return new Promise((resolve) => {
+    const img = new Image();
+    img.onload  = () => resolve(true);
+    img.onerror = () => resolve(false);
+    img.src = src;
+  });
+}
+
+// Aplica la imagen de fondo y el modo de render a todas las capas.
+function applyDisplayMap() {
+  for (const d of overlays) {
+    d.style.backgroundImage = `url("${displayMapURL}")`;
+    d.style.imageRendering  = displaySmooth ? 'auto' : 'pixelated';
+  }
 }
 
 function buildAgent(name) {
@@ -121,7 +155,8 @@ function buildAgent(name) {
     d.style.width  = w + 'px';
     d.style.height = h + 'px';
     d.style.top    = BUBBLE_PAD + 'px';
-    d.style.backgroundImage = `url("${currentBase}map.png")`;
+    d.style.backgroundImage = `url("${displayMapURL || currentBase + 'map.png'}")`;
+    d.style.imageRendering  = displaySmooth ? 'auto' : 'pixelated';
     d.style.backgroundSize  = mapW > 0 ? Math.round(mapW * petScale) + 'px auto' : 'auto';
     d.style.zIndex = String(i);
     stage.insertBefore(d, hit);
