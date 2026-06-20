@@ -101,6 +101,7 @@ function readForm() {
     mouseReactions:  document.getElementById('mouse-react').checked,
     speechBubbles:   document.getElementById('speech-bubbles').checked,
     cargadaMode:     document.getElementById('cargada-mode').checked,
+    bubbleFontSize:  parseInt(document.getElementById('bubble-fs').value, 10),
     startWithWindows:document.getElementById('startup').checked,
   };
 }
@@ -128,6 +129,10 @@ function populateForm(c) {
   document.getElementById('mouse-react').checked    = c.mouseReactions !== false;
   document.getElementById('speech-bubbles').checked = c.speechBubbles  !== false;
   document.getElementById('cargada-mode').checked   = c.cargadaMode    !== false;
+
+  const fsEl = document.getElementById('bubble-fs');
+  fsEl.value = c.bubbleFontSize ?? 14;
+  document.getElementById('bubble-fs-val').textContent = fsEl.value + 'px';
   document.getElementById('startup').checked        = !!c.startWithWindows;
 
   // Modo de comportamiento
@@ -149,6 +154,7 @@ function wireListeners() {
   wireSlider('opacity',   'opacity-val', pct);
   wireSlider('volume',    'volume-val',  pct);
   wireSlider('anim-freq', 'freq-val',    freqLabel);
+  wireSlider('bubble-fs', 'bubble-fs-val', (v) => v + 'px');
 
   // Botones de modo
   document.querySelectorAll('.mode-btn').forEach((btn) => {
@@ -182,6 +188,14 @@ function wireListeners() {
 
 // ── Historial de versiones ────────────────────────────────────────────────────
 const CHANGELOG = [
+  {
+    version: '0.2.18',
+    date: '20 jun 2026',
+    changes: [
+      'Tamaño de texto de los globos configurable (11px – 20px)',
+      'Default subido a 14px para mayor legibilidad',
+    ],
+  },
   {
     version: '0.2.17',
     date: '20 jun 2026',

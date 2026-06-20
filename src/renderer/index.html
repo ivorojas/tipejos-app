@@ -37,6 +37,8 @@
     }
     #hit.dragging { cursor: grabbing; }
 
+    :root { --bubble-fs: 14px; }
+
     /* Globo de diálogo sobre el sprite. */
     #bubble {
       position: absolute;
@@ -50,7 +52,7 @@
       border-radius: 10px;
       padding: 6px 10px;
       font-family: 'Segoe UI', Tahoma, sans-serif;
-      font-size: 11px;
+      font-size: var(--bubble-fs);
       line-height: 1.35;
       color: #222;
       display: flex;

@@ -590,6 +590,7 @@ window.pet.onSetTimeReactions(  (v) => { timeReactions = v; });
 window.pet.onSetMouseReactions( (v) => { mouseReactions= v; });
 window.pet.onSetSpeechBubbles(  (v) => { speechBubbles = v; if (!v) bubbleEl.classList.remove('visible'); });
 window.pet.onSetCargadaMode(    (v) => { cargadaMode = v; });
+window.pet.onSetBubbleFontSize( (v) => { document.documentElement.style.setProperty('--bubble-fs', v + 'px'); });
 window.pet.onDoTrick(           ()  => { if (funNames.length) playAnimation(funNames[Math.floor(Math.random()*funNames.length)], loopIdle); });
 window.pet.onShowBubbleRandom(  ()  => showRandomBubble());
 
@@ -608,6 +609,8 @@ window.pet.onShowBubbleRandom(  ()  => showRandomBubble());
   if (initial.screenBounds) screenBounds = initial.screenBounds;
   petX = initial.petX ?? 0;
   petY = initial.petY ?? 0;
+
+  if (initial.bubbleFontSize) document.documentElement.style.setProperty('--bubble-fs', initial.bubbleFontSize + 'px');
 
   if (initial.agent) {
     try { await loadAgent(initial.agent); }
