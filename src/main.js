@@ -656,6 +656,12 @@ app.whenReady().then(() => {
     if (agents.length > 0) addPet(agents[Math.floor(Math.random() * agents.length)]);
   });
   globalShortcut.register('CommandOrControl+Shift+S', openSettings);
+  // Debug: abre DevTools de la primera mascota activa (útil para diagnosticar bugs)
+  globalShortcut.register('CommandOrControl+Shift+D', () => {
+    for (const { win } of pets.values()) {
+      if (!win.isDestroyed()) { win.webContents.openDevTools({ mode: 'detach' }); break; }
+    }
+  });
 
   // Aplicar startup with Windows desde la config guardada
   app.setLoginItemSettings({ openAtLogin: !!cfg.startWithWindows });

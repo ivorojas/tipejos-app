@@ -228,6 +228,14 @@ function wireListeners() {
 // ── Historial de versiones ────────────────────────────────────────────────────
 const CHANGELOG = [
   {
+    version: '0.2.32',
+    date: '20 jun 2026',
+    changes: [
+      'Debug: Ctrl+Shift+D abre DevTools de la mascota activa para diagnóstico en vivo',
+      'Logs en consola: DPR, resolución, coordenadas de drag, y cuándo layoutWindow dispara reportSize',
+    ],
+  },
+  {
     version: '0.2.31',
     date: '20 jun 2026',
     changes: [

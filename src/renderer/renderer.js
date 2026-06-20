@@ -10,6 +10,11 @@ const BUBBLE_PAD   = 150; // px reservados arriba del sprite para el globo (debe
 const BUBBLE_MIN_W = 250; // ancho mínimo de la ventana para que el globo tenga lugar para el texto
 const BUBBLE_GAP   = 12;  // separación entre la base del globo y la cabeza del sprite
 
+// ── Debug ────────────────────────────────────────────────────────────────────
+// Abrí DevTools con Ctrl+Shift+D y mirá la consola mientras arrastrás.
+const DBG = true;
+function dbg(...args) { if (DBG) console.log('[Tipejos]', ...args); }
+
 // ── Elementos del DOM ────────────────────────────────────────────────────────
 const stage      = document.getElementById('stage');
 const hit        = document.getElementById('hit');
@@ -191,14 +196,10 @@ function layoutWindow(w, h) {
   for (const d of overlays) d.style.left = spriteLeft + 'px';
   hit.style.left = spriteLeft + 'px';
 
-  // El globo se ancla por su base justo encima de la cabeza del sprite y
-  // crece hacia arriba según el texto (el ancho lo maneja el CSS).
   bubbleEl.style.bottom = (h + BUBBLE_GAP) + 'px';
 
-  // Inset = padding transparente alrededor del muñeco visible dentro de la
-  // ventana. Lo usa main.js para clampear el sprite (no la ventana) a la
-  // pantalla y evitar la "pared invisible" al arrastrar.
   const inset = { left: spriteLeft, top: BUBBLE_PAD, right: spriteLeft, bottom: 0 };
+  dbg(`layoutWindow w=${w} h=${h} winW=${winW} dragging=${dragging} — reportSize(${winW}, ${h + BUBBLE_PAD})`);
   window.pet.reportSize(winW, h + BUBBLE_PAD, inset);
 }
 
@@ -662,6 +663,7 @@ hit.addEventListener('mousedown', (e) => {
   dragMoved = false;
   petX = e.screenX - e.clientX;
   petY = e.screenY - e.clientY;
+  dbg(`mousedown screenX=${e.screenX} clientX=${e.clientX} → petX=${petX} | DPR=${window.devicePixelRatio} screenW=${screen.width} winW=${window.outerWidth}`);
   window.pet.dragStart();
   hit.classList.add('dragging');
   e.preventDefault();
