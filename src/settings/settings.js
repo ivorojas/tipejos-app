@@ -180,6 +180,34 @@ function wireListeners() {
   });
 }
 
+// ── Botón de actualización ────────────────────────────────────────────────────
+function wireUpdateButton(isWindows) {
+  const btn = document.getElementById('btn-update');
+  if (!btn) return;
+
+  if (!isWindows) { btn.style.display = 'none'; return; }
+
+  let resetTimer = null;
+  function setStatus(text, disabled, resetAfter) {
+    btn.textContent = text;
+    btn.disabled    = disabled;
+    clearTimeout(resetTimer);
+    if (resetAfter) resetTimer = setTimeout(() => setStatus('🔄 Buscar actualización', false, 0), resetAfter);
+  }
+
+  btn.addEventListener('click', () => {
+    setStatus('⏳ Buscando...', true, 0);
+    window.settings.checkUpdates();
+  });
+
+  window.settings.onUpdateStatus(({ status, version }) => {
+    if      (status === 'up-to-date') setStatus('✅ Estás al día', false, 4000);
+    else if (status === 'available')  setStatus(`⬇️ Descargando v${version}...`, true, 0);
+    else if (status === 'error')      setStatus('❌ Error al buscar', false, 4000);
+    else if (status === 'unavailable') btn.style.display = 'none';
+  });
+}
+
 // ── Arranque ──────────────────────────────────────────────────────────────────
 (async () => {
   const data = await window.settings.getAll();
@@ -194,7 +222,7 @@ function wireListeners() {
   renderActivePets(activePets);
   renderCharGrid(agents);
   wireListeners();
+  wireUpdateButton(data.platform === 'win32');
 
-  // Actualizaciones en tiempo real cuando cambian las mascotas activas
   window.settings.onPetsChanged((pets) => renderActivePets(pets));
 })();

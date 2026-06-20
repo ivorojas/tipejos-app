@@ -457,7 +457,18 @@ ipcMain.on('pet:context-menu', (event) => {
 ipcMain.handle('settings:get', () => {
   const agents     = listAgents();
   const activePets = [...pets.entries()].map(([wcId, { character }]) => ({ wcId, character }));
-  return { config: { ...cfg }, agents, activePets, version: app.getVersion() };
+  return { config: { ...cfg }, agents, activePets, version: app.getVersion(), platform: process.platform };
+});
+
+ipcMain.on('settings:check-updates', () => {
+  const send = (payload) => {
+    if (settingsWin && !settingsWin.isDestroyed())
+      settingsWin.webContents.send('settings:update-status', payload);
+  };
+  if (!autoUpdater || !app.isPackaged || process.platform !== 'win32') {
+    return send({ status: 'unavailable' });
+  }
+  autoUpdater.checkForUpdates().catch((err) => send({ status: 'error', message: err?.message }));
 });
 
 ipcMain.on('settings:apply', (_e, partial) => {
@@ -571,7 +582,17 @@ function setupAutoUpdate() {
     if (r === 0) autoUpdater.quitAndInstall();
   });
 
-  autoUpdater.on('error', (err) => console.error('[auto-update]', err?.message || err));
+  const notifySettings = (payload) => {
+    if (settingsWin && !settingsWin.isDestroyed())
+      settingsWin.webContents.send('settings:update-status', payload);
+  };
+
+  autoUpdater.on('update-available',     (info) => notifySettings({ status: 'available',  version: info.version }));
+  autoUpdater.on('update-not-available', ()     => notifySettings({ status: 'up-to-date' }));
+  autoUpdater.on('error', (err) => {
+    console.error('[auto-update]', err?.message || err);
+    notifySettings({ status: 'error', message: err?.message });
+  });
 
   // Chequear al arrancar y cada 2 horas
   autoUpdater.checkForUpdates().catch(() => {});

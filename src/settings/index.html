@@ -28,7 +28,15 @@
       z-index: 10;
     }
     header h1 { font-size: 16px; font-weight: 600; color: #fff; }
-    header .version { font-size: 11px; color: #666; margin-left: auto; }
+    header .version { font-size: 11px; color: #666; }
+    header .header-right { margin-left: auto; display: flex; align-items: center; gap: 10px; }
+    #btn-update {
+      background: #1e1e3a; border: 1px solid #3a3a70; border-radius: 6px;
+      color: #888; font-size: 11px; padding: 4px 10px; cursor: pointer;
+      transition: 0.15s; white-space: nowrap;
+    }
+    #btn-update:hover:not(:disabled) { border-color: #6666dd; color: #ccc; }
+    #btn-update:disabled { opacity: 0.55; cursor: default; }
 
     /* ── Secciones ───────────────────────────────────────── */
     .section {
@@ -172,7 +180,10 @@
   <header>
     <span style="font-size:20px">🐾</span>
     <h1>Tipejos — Ajustes</h1>
-    <span class="version" id="app-version"></span>
+    <div class="header-right">
+      <button id="btn-update">🔄 Buscar actualización</button>
+      <span class="version" id="app-version"></span>
+    </div>
   </header>
 
   <!-- Mascotas activas -->
