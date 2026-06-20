@@ -177,6 +177,16 @@ function wireListeners() {
 // ── Historial de versiones ────────────────────────────────────────────────────
 const CHANGELOG = [
   {
+    version: '0.2.28',
+    date: '20 jun 2026',
+    changes: [
+      'Arreglado el parpadeo de los personajes con múltiples capas (Bonzi, F1, Genie, Genius, Merlin, Peedy, Rocky)',
+      'Las animaciones ahora se sincronizan con el refresco de pantalla (requestAnimationFrame) para mayor suavidad',
+      'Precarga de sprites antes de cambiar la imagen de fondo → sin flash al cargar personajes',
+      'El tamaño del sprite es correcto desde el primer frame aunque el personaje esté escalado',
+    ],
+  },
+  {
     version: '0.2.27',
     date: '20 jun 2026',
     changes: [

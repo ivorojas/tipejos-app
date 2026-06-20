@@ -108,6 +108,19 @@ async function loadAgent(name) {
   if (myToken !== loadToken) return;
   if (!agentData) throw new Error('agent.js no registró datos para ' + name);
 
+  // Obtener dimensiones del mapa ANTES de buildAgent para que backgroundSize
+  // sea correcto desde el primer frame y no haya parpadeo a escalas > 1×.
+  await new Promise((resolve) => {
+    const img = new Image();
+    img.onload = () => {
+      if (myToken === loadToken) { mapW = img.naturalWidth; mapH = img.naturalHeight; }
+      resolve();
+    };
+    img.onerror = resolve;
+    img.src = base + 'map.png';
+  });
+  if (myToken !== loadToken) return;
+
   buildAgent(name);
 
   loadScript(base + 'sounds-mp3.js').catch(() => { soundData = {}; });
@@ -147,11 +160,22 @@ function probeImage(src) {
 }
 
 // Aplica la imagen de fondo y el modo de render a todas las capas.
+// Precarga la imagen en memoria antes de asignarla para evitar el flash
+// que ocurre cuando el browser carga una nueva URL mid-animación.
 function applyDisplayMap() {
-  for (const d of overlays) {
-    d.style.backgroundImage = `url("${displayMapURL}")`;
-    d.style.imageRendering  = displaySmooth ? 'auto' : 'pixelated';
-  }
+  const url    = displayMapURL;
+  const smooth = displaySmooth;
+  const img    = new Image();
+  const apply  = () => {
+    if (displayMapURL !== url) return; // ya hubo otro cambio, descartar
+    for (const d of overlays) {
+      d.style.backgroundImage = `url("${url}")`;
+      d.style.imageRendering  = smooth ? 'auto' : 'pixelated';
+    }
+  };
+  img.onload  = apply;
+  img.onerror = apply; // aplicar igual si hay error (mejor que no hacer nada)
+  img.src = url;
 }
 
 // Calcula el ancho de ventana y el offset horizontal del sprite, posiciona el
@@ -320,7 +344,9 @@ function step(a) {
   a.index = next;
   const f = a.frames[next];
   const dur = f.duration != null ? f.duration : 100;
-  if (dur > 0) drawFrame(f.images); // frames con duration:0 son transiciones invisibles
+  // Sincronizar el redibujado con el ciclo de render del browser (evita tearing
+  // y parpadeo en ventanas transparentes, especialmente con overlayCount > 1).
+  if (dur > 0) requestAnimationFrame(() => { if (a === anim && !a.finished) drawFrame(f.images); });
   if (soundOn && f.sound != null && soundData[f.sound]) playSound(soundData[f.sound]);
   a.timer = setTimeout(() => step(a), dur);
 }

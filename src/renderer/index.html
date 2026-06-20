@@ -24,7 +24,9 @@
       left: 0;
       background-repeat: no-repeat;
       pointer-events: none;
-      image-rendering: pixelated;   /* escala nítida, sin blur */
+      image-rendering: pixelated;
+      will-change: background-position;
+      transform: translateZ(0);     /* fuerza capa GPU propia → sin parpadeo al actualizar */
     }
 
     /* Zona de arrastre encima del sprite. */
