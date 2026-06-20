@@ -151,24 +151,23 @@ function applyGridFilters() {
       card.appendChild(badge);
     }
 
-    // Botón de favorito (❤) — el usuario lo marca manualmente
+    // Botón de favorito — el usuario lo marca manualmente.
+    // ♡ vacío = no favorito · ❤ rojo lleno = favorito.
     const favBtn = document.createElement('button');
-    favBtn.className = 'char-fav-btn' + (userFavorites.has(name) ? ' active' : '');
-    favBtn.textContent = '♥';
-    favBtn.title = userFavorites.has(name) ? 'Quitar de favoritos' : 'Marcar como favorito';
+    const paintHeart = (on) => {
+      favBtn.textContent = on ? '❤' : '♡';
+      favBtn.classList.toggle('active', on);
+      favBtn.title = on ? 'Quitar de favoritos' : 'Marcar como favorito';
+    };
+    favBtn.className = 'char-fav-btn';
+    paintHeart(userFavorites.has(name));
     favBtn.addEventListener('click', (e) => {
       e.stopPropagation(); // no abrir el personaje
-      if (userFavorites.has(name)) {
-        userFavorites.delete(name);
-        favBtn.classList.remove('active');
-        favBtn.title = 'Marcar como favorito';
-      } else {
-        userFavorites.add(name);
-        favBtn.classList.add('active');
-        favBtn.title = 'Quitar de favoritos';
-      }
+      const nowFav = !userFavorites.has(name);
+      if (nowFav) userFavorites.add(name); else userFavorites.delete(name);
+      paintHeart(nowFav);                       // feedback inmediato
       window.settings.apply({ favorites: [...userFavorites] });
-      applyGridFilters(); // re-sort (favoritos arriba)
+      applyGridFilters();                       // re-ordena (favoritos arriba)
     });
     card.appendChild(favBtn);
 
@@ -182,7 +181,7 @@ function applyGridFilters() {
     if (hasFilter || filtered.length <= 15) {
       toggleBtn.style.display = 'none';
     } else {
-      toggleBtn.style.display = '';
+      toggleBtn.style.display = 'block';   // '' dejaría el display:none del CSS → botón invisible
       toggleBtn.textContent = showAllChars
         ? '↑ Ver menos'
         : `↓ Ver todos (${hiddenCnt} más)`;
@@ -302,6 +301,15 @@ function wireListeners() {
 
 // ── Historial de versiones ────────────────────────────────────────────────────
 const CHANGELOG = [
+  {
+    version: '0.2.36',
+    date: '20 jun 2026',
+    changes: [
+      'Fix favoritos: el corazón ahora se VE (♡ gris en círculo) y al marcarlo cambia a ❤ rojo lleno',
+      'Fix "Ver todos": el botón estaba siempre invisible (display:none del CSS) — ahora aparece de verdad',
+      'Actualización: se baja siempre el instalador completo para que no quede el código a medias',
+    ],
+  },
   {
     version: '0.2.35',
     date: '20 jun 2026',

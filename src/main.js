@@ -733,6 +733,9 @@ function setupAutoUpdate() {
 
   autoUpdater.autoDownload = true;
   autoUpdater.autoInstallOnAppQuit = true;
+  // Bajar siempre el instalador completo: evita que una actualización diferencial
+  // (por blockmap desfasado) deje el código a medias mostrando la versión nueva.
+  autoUpdater.disableDifferentialDownload = true;
 
   autoUpdater.on('update-downloaded', (info) => {
     const r = dialog.showMessageBoxSync({
