@@ -9,12 +9,13 @@ let activePets = [];
 function pct(v)  { return Math.round(v * 100) + '%'; }
 function xVal(v) { return parseFloat(v).toFixed(1) + '×'; }
 function freqLabel(v) {
-  const n = parseFloat(v);
-  if (n <= 0.5) return 'Lenta';
-  if (n <= 0.75) return 'Lenta+';
-  if (n <= 1.25) return 'Normal';
-  if (n <= 2.0)  return 'Rápida';
-  return 'Muy rápida';
+  const n   = parseFloat(v);
+  // Pausa promedio estimada en modo Normal: ~1.9s / frecuencia
+  const s   = n >= 2 ? '<1s' : `~${(1.9 / n).toFixed(1)}s`;
+  if (n <= 0.5)  return `Lenta (${s})`;
+  if (n <= 1.25) return `Normal (${s})`;
+  if (n <= 2.0)  return `Rápida (${s})`;
+  return `Muy rápida (${s})`;
 }
 
 // ── Renderizar mascotas activas ────────────────────────────────────────────────
@@ -168,19 +169,6 @@ function wireListeners() {
     filterCharGrid(e.target.value);
   });
 
-  document.getElementById('btn-apply').addEventListener('click', () => {
-    window.settings.apply(readForm());
-    const btn = document.getElementById('btn-apply');
-    btn.textContent = '✅ ¡Aplicado!';
-    btn.style.background = '#3a8a55';
-    btn.disabled = true;
-    setTimeout(() => {
-      btn.textContent = 'Aplicar cambios';
-      btn.style.background = '';
-      btn.disabled = false;
-    }, 1800);
-  });
-
   document.getElementById('btn-close').addEventListener('click', () => {
     window.settings.close();
   });
@@ -188,6 +176,15 @@ function wireListeners() {
 
 // ── Historial de versiones ────────────────────────────────────────────────────
 const CHANGELOG = [
+  {
+    version: '0.2.19',
+    date: '20 jun 2026',
+    changes: [
+      'Ajustes con auto-apply: cualquier cambio se aplica al instante, sin botón',
+      'Frecuencia de animación muestra tiempo estimado entre animaciones (~2s, etc.)',
+      'Modos de comportamiento con descripción de qué hace cada uno',
+    ],
+  },
   {
     version: '0.2.18',
     date: '20 jun 2026',
@@ -346,6 +343,23 @@ function wireChangelogModal() {
   modal.addEventListener('click', (e) => { if (e.target === modal) modal.classList.remove('open'); });
 }
 
+// ── Auto-apply ────────────────────────────────────────────────────────────────
+let _autoApplyTimer = null;
+function autoApply() {
+  clearTimeout(_autoApplyTimer);
+  _autoApplyTimer = setTimeout(() => window.settings.apply(readForm()), 120);
+}
+
+function wireAutoApply() {
+  ['scale','opacity','volume','anim-freq','bubble-fs'].forEach((id) => {
+    document.getElementById(id)?.addEventListener('input', autoApply);
+  });
+  ['sound-on','wander','time-react','mouse-react','speech-bubbles','cargada-mode','startup'].forEach((id) => {
+    document.getElementById(id)?.addEventListener('change', autoApply);
+  });
+  document.querySelectorAll('.mode-btn').forEach((btn) => btn.addEventListener('click', autoApply));
+}
+
 // ── Botón de actualización ────────────────────────────────────────────────────
 function wireUpdateButton(isWindows) {
   const btn = document.getElementById('btn-update');
@@ -389,6 +403,7 @@ function wireUpdateButton(isWindows) {
   renderActivePets(activePets);
   renderCharGrid(agents);
   wireListeners();
+  wireAutoApply();
   wireUpdateButton(data.platform === 'win32');
   wireChangelogModal();
 

@@ -185,21 +185,19 @@
     }
     .mode-btn.active { border-color: #7070ee; color: #d0d0ff; background: #1e1e40; }
     .mode-btn:hover:not(.active) { border-color: #4a4a80; color: #aaa; }
-    .mode-icon { font-size: 20px; display: block; margin-bottom: 4px; }
+    .mode-icon { font-size: 18px; display: block; margin-bottom: 2px; }
+    .mode-name { display: block; font-weight: 700; font-size: 12px; }
+    .mode-desc { display: block; font-size: 9px; color: #555; margin-top: 2px; line-height: 1.3; }
+    .mode-btn.active .mode-desc { color: #7878aa; }
 
     /* ── Botones de acción ───────────────────────────────── */
-    .actions {
-      display: flex; gap: 10px;
-      padding: 16px 16px 0;
-    }
+    .actions { padding: 16px 16px 0; }
     .btn {
-      flex: 1; padding: 10px;
+      width: 100%; padding: 10px;
       border: none; border-radius: 8px;
       font-size: 13px; font-weight: 600;
       cursor: pointer; transition: 0.15s;
     }
-    .btn-primary { background: #5555cc; color: #fff; }
-    .btn-primary:hover { background: #6666ee; }
     .btn-secondary { background: #2a2a48; color: #ccc; }
     .btn-secondary:hover { background: #333358; }
 
@@ -278,13 +276,19 @@
       <span style="color:#aaa; font-size:12px">Modo de animaciones</span>
       <div class="modes" style="width:100%">
         <div class="mode-btn" data-mode="calm">
-          <span class="mode-icon">😴</span>Tranquilo
+          <span class="mode-icon">😴</span>
+          <span class="mode-name">Tranquilo</span>
+          <span class="mode-desc">pocas anims divertidas · pausas largas</span>
         </div>
         <div class="mode-btn active" data-mode="normal">
-          <span class="mode-icon">🙂</span>Normal
+          <span class="mode-icon">🙂</span>
+          <span class="mode-name">Normal</span>
+          <span class="mode-desc">mix equilibrado · ritmo moderado</span>
         </div>
         <div class="mode-btn" data-mode="playful">
-          <span class="mode-icon">🤪</span>Payaso
+          <span class="mode-icon">🤪</span>
+          <span class="mode-name">Payaso</span>
+          <span class="mode-desc">muchas anims divertidas · muy activo · más globos</span>
         </div>
       </div>
     </div>
@@ -292,7 +296,7 @@
     <div class="row" style="margin-top:10px">
       <label>Frecuencia</label>
       <input type="range" id="anim-freq" min="0.25" max="3" step="0.25" value="1">
-      <span class="val" id="freq-val">Normal</span>
+      <span class="val" id="freq-val" style="min-width:90px">Normal (~1.9s)</span>
     </div>
 
     <div class="row" style="margin-bottom:12px">
@@ -349,7 +353,6 @@
 
   <!-- Acciones -->
   <div class="actions">
-    <button class="btn btn-primary"   id="btn-apply">Aplicar cambios</button>
     <button class="btn btn-secondary" id="btn-close">Cerrar</button>
   </div>
 
