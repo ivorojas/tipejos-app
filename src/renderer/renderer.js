@@ -111,10 +111,11 @@ async function loadAgent(name) {
   loadMapPixels(base + 'map.png', myToken);
 
   // Primero: usar map@2x.png (Scale2x) de assets, si existe.
+  // Scale2x es pixel art → mantener renderizado pixelado (no suavizar).
   probeImage(base + 'map@2x.png').then((ok) => {
     if (myToken !== loadToken || !ok) return;
     displayMapURL = base + 'map@2x.png';
-    displaySmooth = true;
+    displaySmooth = false;
     applyDisplayMap();
   });
 

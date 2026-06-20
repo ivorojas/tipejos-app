@@ -177,6 +177,13 @@ function wireListeners() {
 // ── Historial de versiones ────────────────────────────────────────────────────
 const CHANGELOG = [
   {
+    version: '0.2.23',
+    date: '20 jun 2026',
+    changes: [
+      'Fix: sprites Scale2x volvían a verse borrosos en v0.2.22 por un error de renderizado',
+    ],
+  },
+  {
     version: '0.2.22',
     date: '20 jun 2026',
     changes: [

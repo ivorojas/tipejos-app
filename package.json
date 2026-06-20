@@ -1,6 +1,6 @@
 {
   "name": "tipejos",
-  "version": "0.2.22",
+  "version": "0.2.23",
   "description": "Mascotas de escritorio con los clásicos asistentes de Microsoft Office (Clippy, Merlin, Rover, El Genio...)",
   "main": "src/main.js",
   "scripts": {
