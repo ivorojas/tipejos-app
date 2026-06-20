@@ -456,14 +456,26 @@ const GENERIC = {
   ],
 };
 
-// Devuelve { roast, soft } de una categoría para el personaje actual.
-// Acepta el formato nuevo ({roast,soft}) y el viejo (array plano = todo roast).
+let phraseLikes = {}; // { charName: { phrase: false } } — frases descartadas por el usuario
+
+// Devuelve { roast, soft } de una categoría para el personaje actual,
+// filtrando las frases que el usuario descartó.
 function catSets(category) {
-  const set = ALL_PHRASES[currentCharName];
+  const set   = ALL_PHRASES[currentCharName];
   const entry = set && set[category];
-  if (!entry) return { roast: [], soft: GENERIC[category] || GENERIC.idle || [] };
-  if (Array.isArray(entry)) return { roast: entry, soft: [] };
-  return { roast: entry.roast || [], soft: entry.soft || [] };
+  let roast, soft;
+  if (!entry) {
+    roast = []; soft = GENERIC[category] || GENERIC.idle || [];
+  } else if (Array.isArray(entry)) {
+    roast = entry; soft = [];
+  } else {
+    roast = entry.roast || []; soft = entry.soft || [];
+  }
+  const disliked = phraseLikes[currentCharName] || {};
+  return {
+    roast: roast.filter(p => disliked[p] !== false),
+    soft:  soft.filter(p => disliked[p] !== false),
+  };
 }
 
 // Elige una frase respetando el Modo Cargada: ON => ~90% roast / ~10% soft;
@@ -746,6 +758,7 @@ window.pet.onSetMouseReactions( (v) => { mouseReactions= v; });
 window.pet.onSetSpeechBubbles(  (v) => { speechBubbles = v; if (!v) bubbleEl.classList.remove('visible'); });
 window.pet.onSetCargadaMode(    (v) => { cargadaMode = v; });
 window.pet.onSetBubbleFontSize( (v) => { document.documentElement.style.setProperty('--bubble-fs', v + 'px'); });
+window.pet.onSetPhraseLikes((likes) => { phraseLikes = likes; });
 window.pet.onDoTrick(           ()  => { if (funNames.length) playAnimation(funNames[Math.floor(Math.random()*funNames.length)], loopIdle); });
 window.pet.onShowBubbleRandom(  ()  => showRandomBubble());
 window.pet.onAiSpriteReady((name, filePath) => {
@@ -767,6 +780,7 @@ window.pet.onAiSpriteReady((name, filePath) => {
   mouseReactions = initial.mouseReactions !== false;
   speechBubbles  = initial.speechBubbles  !== false;
   cargadaMode    = initial.cargadaMode    !== false;
+  phraseLikes    = initial.phraseLikes || {};
   if (initial.screenBounds) screenBounds = initial.screenBounds;
   petX = initial.petX ?? 0;
   petY = initial.petY ?? 0;

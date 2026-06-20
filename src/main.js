@@ -222,6 +222,7 @@ function applyToPets(partial) {
     if (partial.speechBubbles!== undefined) win.webContents.send('set-speech-bubbles', partial.speechBubbles);
     if (partial.cargadaMode  !== undefined) win.webContents.send('set-cargada-mode',   partial.cargadaMode);
     if (partial.bubbleFontSize!==undefined) win.webContents.send('set-bubble-font',    partial.bubbleFontSize);
+    if ('phraseLikes' in partial) win.webContents.send('set-phrase-likes', partial.phraseLikes);
   }
   if (partial.startWithWindows !== undefined) {
     app.setLoginItemSettings({ openAtLogin: partial.startWithWindows });
@@ -382,6 +383,7 @@ ipcMain.handle('get-initial', (event) => {
     speechBubbles:  cfg.speechBubbles,
     cargadaMode:    cfg.cargadaMode,
     bubbleFontSize: cfg.bubbleFontSize ?? 14,
+    phraseLikes:    cfg.phraseLikes || {},
     firstRun,
     showSoundTip,
     screenBounds:   { x: workArea.x, y: workArea.y, width: workArea.width, height: workArea.height },

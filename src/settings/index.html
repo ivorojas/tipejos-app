@@ -167,6 +167,68 @@
       font-size: 8px; color: #777; padding: 1px 4px;
       pointer-events: none;
     }
+    .char-famous-badge {
+      position: absolute; top: 4px; left: 4px;
+      font-size: 9px; color: #f0c040;
+      pointer-events: none;
+    }
+    #btn-show-all {
+      display: none; width: 100%; margin-top: 10px;
+      padding: 7px; background: #1a1a30; border: 1px dashed #3a3a70;
+      border-radius: 8px; color: #7070cc; font-size: 12px; cursor: pointer;
+      transition: 0.15s;
+    }
+    #btn-show-all:hover { border-color: #6666dd; color: #c0c0ff; }
+
+    /* ── Filtro de mensajes ──────────────────────────────── */
+    #pf-char-select {
+      width: 100%; padding: 8px 10px; background: #12121e;
+      border: 1px solid #2a2a48; border-radius: 8px;
+      color: #d0d0e8; font-size: 13px; outline: none; cursor: pointer;
+    }
+    #pf-swiper { margin-top: 14px; }
+    #pf-header {
+      display: flex; align-items: center; gap: 10px; margin-bottom: 12px;
+    }
+    #pf-back {
+      background: none; border: 1px solid #3a3a70; border-radius: 6px;
+      color: #7070cc; font-size: 11px; padding: 3px 8px; cursor: pointer;
+    }
+    #pf-back:hover { border-color: #6666dd; color: #c0c0ff; }
+    #pf-char-label { font-size: 13px; font-weight: 700; color: #c0c0ff; }
+    #pf-card {
+      display: flex; gap: 14px; align-items: flex-start;
+      background: #12121e; border: 1px solid #2a2a48;
+      border-radius: 10px; padding: 14px; min-height: 90px;
+    }
+    #pf-thumb {
+      width: 72px; height: 72px; flex-shrink: 0;
+      background-repeat: no-repeat; background-size: contain; background-position: center;
+    }
+    #pf-phrase {
+      flex: 1; font-size: 13px; color: #d0d0e8; line-height: 1.5;
+      align-self: center;
+    }
+    #pf-actions {
+      display: flex; gap: 10px; margin-top: 12px;
+    }
+    .pf-btn {
+      flex: 1; padding: 10px; border: 2px solid transparent;
+      border-radius: 10px; font-size: 13px; font-weight: 700;
+      cursor: pointer; transition: 0.15s;
+    }
+    .pf-no  { background: #2a1a1a; border-color: #5a2a2a; color: #cc7070; }
+    .pf-yes { background: #1a2a1a; border-color: #2a5a2a; color: #70cc70; }
+    .pf-no:hover,  .pf-no.pf-active  { background: #3a1a1a; border-color: #cc4444; color: #ff8888; }
+    .pf-yes:hover, .pf-yes.pf-active { background: #1a3a1a; border-color: #44cc44; color: #88ff88; }
+    #pf-progress-wrap { margin-top: 12px; }
+    #pf-progress-bar {
+      height: 4px; background: #2a2a48; border-radius: 2px; overflow: hidden;
+      margin-bottom: 6px;
+    }
+    #pf-progress-fill { height: 100%; background: #7070ee; border-radius: 2px; transition: width 0.2s; }
+    #pf-progress-text { font-size: 11px; color: #666; text-align: center; }
+    #pf-done-msg { text-align: center; color: #888; font-size: 13px; padding: 16px 0; }
 
     /* ── Controles ───────────────────────────────────────── */
     .row {
@@ -234,6 +296,7 @@
     }
     .shortcut-desc { color: #888; font-size: 12px; align-self: center; }
   </style>
+  <script src="../renderer/phrases.js"></script>
 </head>
 <body>
   <header>
@@ -260,14 +323,48 @@
              border-radius:8px; color:#d0d0e8; font-size:13px; margin-bottom:10px; outline:none;">
     <div class="size-filters">
       <button class="size-btn active" data-size="all">Todos</button>
-      <button class="size-btn" data-size="small">Chicos (≤100px)</button>
-      <button class="size-btn" data-size="medium">Medianos (101–179px)</button>
-      <button class="size-btn" data-size="large">Grandes (≥180px)</button>
+      <button class="size-btn" data-size="famous">★ Famosos</button>
+      <button class="size-btn" data-size="small">Chicos</button>
+      <button class="size-btn" data-size="medium">Medianos</button>
+      <button class="size-btn" data-size="large">Grandes</button>
     </div>
     <div id="no-results" style="display:none; color:#666; font-style:italic; padding:6px 0;">
       No hay personajes que coincidan.
     </div>
     <div id="char-grid"></div>
+    <button id="btn-show-all"></button>
+  </div>
+
+  <!-- Filtrar mensajes -->
+  <div class="section">
+    <h2>Filtrar mensajes</h2>
+    <p style="color:#777; font-size:12px; margin-bottom:12px">
+      Revisá las frases de cada personaje. Las que descartés no se mostrarán más.
+    </p>
+    <div id="pf-picker">
+      <select id="pf-char-select">
+        <option value="">— Elegí un personaje —</option>
+      </select>
+    </div>
+    <div id="pf-swiper" style="display:none">
+      <div id="pf-header">
+        <button id="pf-back">← Volver</button>
+        <span id="pf-char-label"></span>
+      </div>
+      <div id="pf-card">
+        <div id="pf-thumb"></div>
+        <span id="pf-phrase"></span>
+      </div>
+      <div id="pf-actions">
+        <button class="pf-btn pf-no"  id="pf-btn-no" >✕  No me gusta</button>
+        <button class="pf-btn pf-yes" id="pf-btn-yes">❤  Me gusta</button>
+      </div>
+      <div id="pf-progress-wrap">
+        <div id="pf-progress-bar"><div id="pf-progress-fill"></div></div>
+        <div id="pf-progress-text"></div>
+      </div>
+    </div>
+    <div id="pf-done-msg" style="display:none"></div>
   </div>
 
   <!-- Apariencia -->

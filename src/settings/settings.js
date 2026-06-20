@@ -60,6 +60,23 @@ let allAgents  = [];
 let agentSizes = {};   // { name: [w, h] } recibido de main.js
 let activeSizeFilter = 'all';
 
+const FAMOUS = ['Clippy','Bonzi','Merlin','Peedy','Rocky','Rover','Dot','F1',
+  'Links','Genie','Genius','MotherNature','PowerPup','Scribble','Earl',
+  'Robby','OfficeLogo','Wabbit','Reaper','Santa'];
+const FAMOUS_SET  = new Set(FAMOUS);
+const FAMOUS_RANK = Object.fromEntries(FAMOUS.map((n, i) => [n, i]));
+
+let showAllChars = false;
+
+function sortAgents(list) {
+  return [...list].sort((a, b) => {
+    const ra = FAMOUS_RANK[a] ?? 999;
+    const rb = FAMOUS_RANK[b] ?? 999;
+    if (ra !== rb) return ra - rb;
+    return a.localeCompare(b);
+  });
+}
+
 function sizeCategory(name) {
   const sz = agentSizes[name];
   if (!sz) return 'unknown';
@@ -78,11 +95,19 @@ function renderCharGrid(agentList, sizes) {
 function applyGridFilters() {
   const q    = (document.getElementById('char-search')?.value || '').trim().toLowerCase();
   const size = activeSizeFilter;
-  const filtered = allAgents.filter((n) => {
+
+  let filtered = allAgents.filter((n) => {
     if (q && !n.toLowerCase().includes(q)) return false;
-    if (size !== 'all' && sizeCategory(n) !== size) return false;
+    if (size === 'famous' && !FAMOUS_SET.has(n)) return false;
+    if (size !== 'all' && size !== 'famous' && sizeCategory(n) !== size) return false;
     return true;
   });
+
+  filtered = sortAgents(filtered);
+
+  const hasFilter = q || size !== 'all';
+  const visible   = (showAllChars || hasFilter) ? filtered : filtered.slice(0, 15);
+  const hiddenCnt = filtered.length - visible.length;
 
   const grid      = document.getElementById('char-grid');
   const noResults = document.getElementById('no-results');
@@ -94,7 +119,7 @@ function applyGridFilters() {
     ? `(${allAgents.length} personajes)`
     : `(${filtered.length} de ${allAgents.length})`;
 
-  for (const name of filtered) {
+  for (const name of visible) {
     const card = document.createElement('div');
     card.className = 'char-card';
     card.title     = 'Agregar ' + name;
@@ -114,7 +139,6 @@ function applyGridFilters() {
     card.appendChild(preview);
     card.appendChild(label);
 
-    // Badge de tamaño
     const sz = agentSizes[name];
     if (sz) {
       const badge = document.createElement('div');
@@ -123,19 +147,47 @@ function applyGridFilters() {
       card.appendChild(badge);
     }
 
+    // Badge de famoso
+    if (FAMOUS_SET.has(name)) {
+      const fb = document.createElement('div');
+      fb.className   = 'char-famous-badge';
+      fb.textContent = '★';
+      card.appendChild(fb);
+    }
+
     card.addEventListener('click', () => window.settings.addPet(name));
     grid.appendChild(card);
   }
+
+  // Botón Ver todos / Ver menos
+  const toggleBtn = document.getElementById('btn-show-all');
+  if (toggleBtn) {
+    if (hasFilter || filtered.length <= 15) {
+      toggleBtn.style.display = 'none';
+    } else {
+      toggleBtn.style.display = '';
+      toggleBtn.textContent = showAllChars
+        ? '↑ Ver menos'
+        : `↓ Ver todos (${hiddenCnt} más)`;
+    }
+  }
 }
 
-// Botones de filtro por tamaño
+// Botones de filtro (tamaño + famosos)
 document.querySelectorAll('.size-btn').forEach((btn) => {
   btn.addEventListener('click', () => {
     document.querySelectorAll('.size-btn').forEach((b) => b.classList.remove('active'));
     btn.classList.add('active');
     activeSizeFilter = btn.dataset.size;
+    showAllChars = false;
     applyGridFilters();
   });
+});
+
+// Botón Ver todos / Ver menos
+document.getElementById('btn-show-all')?.addEventListener('click', () => {
+  showAllChars = !showAllChars;
+  applyGridFilters();
 });
 
 // ── Leer valores del formulario ────────────────────────────────────────────────
@@ -227,6 +279,15 @@ function wireListeners() {
 
 // ── Historial de versiones ────────────────────────────────────────────────────
 const CHANGELOG = [
+  {
+    version: '0.2.34',
+    date: '20 jun 2026',
+    changes: [
+      'Famosos primero: la grilla muestra los personajes más conocidos al inicio (★), con botón "Ver todos"',
+      'Filtro de mensajes: revisá y descartá frases por personaje estilo swipe — en Ajustes > Filtrar mensajes',
+      'Las frases descartadas no se muestran más al personaje activo',
+    ],
+  },
   {
     version: '0.2.33',
     date: '20 jun 2026',
@@ -571,6 +632,7 @@ function wireUpdateButton(isWindows) {
   populateForm(config);
   renderActivePets(activePets);
   renderCharGrid(agents, data.agentSizes);
+  initPhraseFilter(data.config);
   wireListeners();
   wireAutoApply();
   wireUpdateButton(data.platform === 'win32');
@@ -578,3 +640,110 @@ function wireUpdateButton(isWindows) {
 
   window.settings.onPetsChanged((pets) => renderActivePets(pets));
 })();
+
+// ── Filtro de mensajes (Tinder) ────────────────────────────────────────────────
+let pfPhraseLikes = {};  // { charName: { "phrase": false } } — solo se guardan los descartados
+let pfPhrases     = [];  // frases del personaje activo
+let pfIndex       = 0;
+let pfCharName    = '';
+
+function initPhraseFilter(cfg) {
+  pfPhraseLikes = (cfg && cfg.phraseLikes) || {};
+
+  const sel = document.getElementById('pf-char-select');
+  if (!sel) return;
+  const prev = sel.value;
+  sel.innerHTML = '<option value="">— Elegí un personaje —</option>';
+
+  const chars = Object.keys(window.PHRASES_DATA || {}).sort();
+  for (const c of chars) {
+    const disliked = Object.values(pfPhraseLikes[c] || {}).filter(v => v === false).length;
+    const opt = document.createElement('option');
+    opt.value = c;
+    opt.textContent = c + (disliked > 0 ? ` (${disliked} descartadas)` : '');
+    sel.appendChild(opt);
+  }
+  sel.value = prev;
+}
+
+function pfOpen(charName) {
+  pfCharName = charName;
+  const charData = (window.PHRASES_DATA || {})[charName] || {};
+  pfPhrases = [];
+  for (const [, val] of Object.entries(charData)) {
+    for (const type of ['roast', 'soft']) {
+      for (const text of (val[type] || [])) {
+        pfPhrases.push(text);
+      }
+    }
+  }
+  pfIndex = 0;
+
+  document.getElementById('pf-char-label').textContent = charName;
+  document.getElementById('pf-thumb').style.backgroundImage =
+    `url("../../assets/agents/${charName}/thumb.png")`;
+
+  document.getElementById('pf-picker').style.display    = 'none';
+  document.getElementById('pf-swiper').style.display    = '';
+  document.getElementById('pf-done-msg').style.display  = 'none';
+  document.getElementById('pf-actions').style.display   = '';
+  pfShowPhrase();
+}
+
+function pfClose() {
+  document.getElementById('pf-picker').style.display   = '';
+  document.getElementById('pf-swiper').style.display   = 'none';
+  document.getElementById('pf-done-msg').style.display = 'none';
+  initPhraseFilter({ phraseLikes: pfPhraseLikes });
+  document.getElementById('pf-char-select').value = '';
+}
+
+function pfShowPhrase() {
+  if (pfIndex >= pfPhrases.length) { pfShowDone(); return; }
+  const text     = pfPhrases[pfIndex];
+  const decision = (pfPhraseLikes[pfCharName] || {})[text];
+  document.getElementById('pf-phrase').textContent = text;
+  document.getElementById('pf-btn-yes').classList.toggle('pf-active', decision === true);
+  document.getElementById('pf-btn-no').classList.toggle('pf-active', decision === false);
+
+  const total    = pfPhrases.length;
+  const disliked = pfPhrases.filter(p => (pfPhraseLikes[pfCharName] || {})[p] === false).length;
+  document.getElementById('pf-progress-text').textContent =
+    `Frase ${pfIndex + 1} de ${total}` + (disliked > 0 ? ` · ${disliked} descartadas` : '');
+  document.getElementById('pf-progress-fill').style.width =
+    ((pfIndex + 1) / total * 100) + '%';
+}
+
+function pfDecide(liked) {
+  if (pfIndex >= pfPhrases.length) return;
+  const text = pfPhrases[pfIndex];
+  if (!pfPhraseLikes[pfCharName]) pfPhraseLikes[pfCharName] = {};
+  if (liked) {
+    delete pfPhraseLikes[pfCharName][text];
+    if (Object.keys(pfPhraseLikes[pfCharName]).length === 0)
+      delete pfPhraseLikes[pfCharName];
+  } else {
+    pfPhraseLikes[pfCharName][text] = false;
+  }
+  window.settings.apply({ phraseLikes: pfPhraseLikes });
+  pfIndex++;
+  pfShowPhrase();
+}
+
+function pfShowDone() {
+  const total    = pfPhrases.length;
+  const disliked = pfPhrases.filter(p => (pfPhraseLikes[pfCharName] || {})[p] === false).length;
+  document.getElementById('pf-swiper').style.display   = 'none';
+  document.getElementById('pf-done-msg').style.display = '';
+  document.getElementById('pf-done-msg').textContent   =
+    `✓ Revisaste ${total} frases de ${pfCharName}.` +
+    (disliked > 0 ? ` ${disliked} descartadas.` : ' Ninguna descartada.');
+  initPhraseFilter({ phraseLikes: pfPhraseLikes });
+}
+
+document.getElementById('pf-char-select')?.addEventListener('change', (e) => {
+  if (e.target.value) pfOpen(e.target.value);
+});
+document.getElementById('pf-back')?.addEventListener('click', pfClose);
+document.getElementById('pf-btn-yes')?.addEventListener('click', () => pfDecide(true));
+document.getElementById('pf-btn-no')?.addEventListener('click',  () => pfDecide(false));
