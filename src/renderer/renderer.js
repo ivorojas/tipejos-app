@@ -79,9 +79,12 @@ function loadMapPixels(src, token) {
       const ctx = c.getContext('2d', { willReadFrequently: true });
       ctx.drawImage(img, 0, 0);
       if (token !== loadToken) return;
+      const sameSize = (mapW === img.naturalWidth && mapH === img.naturalHeight);
       mapW = img.naturalWidth; mapH = img.naturalHeight;
       mapData = ctx.getImageData(0, 0, mapW, mapH);
-      applyScaleToOverlays(); // background-size ahora conocido
+      // Si las dimensiones ya estaban bien (gracias al probe previo), no llamar a
+      // applyScaleToOverlays porque eso manda agent-size y puede interrumpir un drag.
+      if (!sameSize) applyScaleToOverlays();
     } catch (e) { mapData = null; }
   };
   img.onerror = () => {};
@@ -370,12 +373,18 @@ function playSound(dataUri) {
 }
 
 // ── Vida del muñequito ────────────────────────────────────────────────────────
+// Tiempo de arranque: durante los primeros 8 segundos solo se muestra el saludo
+// inicial y se suprimen los mensajes de horario y los globos idle aleatorios,
+// para que no se disparen 5 mensajes seguidos al agregar un personaje.
+let startupGraceUntil = 0;
+
 function startLife() {
+  startupGraceUntil = Date.now() + 8000;
   const intro = agentData.animations['Show'] ? 'Show'
     : agentData.animations['Greeting'] ? 'Greeting' : null;
   if (intro) playAnimation(intro, loopIdle);
   else loopIdle();
-  // Saludo al aparecer
+  // Saludo al aparecer (único mensaje garantizado al inicio)
   if (speechBubbles) setTimeout(() => showCategoryBubble('greeting'), 700);
 }
 
@@ -386,8 +395,9 @@ function loopIdle() {
   const funChance = behaviorMode === 'calm' ? 0.05 : behaviorMode === 'playful' ? 0.5 : 0.25;
   const pauseMult = behaviorMode === 'calm' ? 2.0  : behaviorMode === 'playful' ? 0.5  : 1.0;
 
-  // Globo de diálogo ocasional
-  if (speechBubbles && Math.random() < (behaviorMode === 'playful' ? 0.2 : 0.08)) {
+  // Globo de diálogo ocasional (suprimido durante el grace period de arranque)
+  const inGrace = Date.now() < startupGraceUntil;
+  if (!inGrace && speechBubbles && Math.random() < (behaviorMode === 'playful' ? 0.2 : 0.08)) {
     setTimeout(showRandomBubble, 300);
   }
 
@@ -520,7 +530,7 @@ function showCategoryBubble(cat, dur) { queueBubble(pickPhrase(cat), dur); }
 
 // ── Reacciones por horario ────────────────────────────────────────────────────
 function checkTimeReactions() {
-  if (!timeReactions) return;
+  if (!timeReactions || Date.now() < startupGraceUntil) return;
   const h = new Date().getHours();
   if (h >= 6 && h < 9) {
     setTimeout(() => showCategoryBubble('morning'), 2500);
@@ -565,8 +575,10 @@ function scheduleWander() {
 }
 
 async function doWander() {
-  if (!wanderEnabled || !agentData) { loopIdle(); return; }
+  if (!wanderEnabled || !agentData || dragging) { loopIdle(); return; }
   const [winX, winY] = await window.pet.getPosition();
+  // El usuario puede haber empezado a arrastrar mientras esperábamos el IPC.
+  if (!wanderEnabled || !agentData || dragging) { return; }
   petX = winX; petY = winY;
 
   const [fw, fh] = framesize;
@@ -594,6 +606,8 @@ function cancelWanderAnimation() {
 function animateToPosition(targetX, targetY, duration, onDone) {
   const startX = petX, startY = petY, startTime = performance.now();
   function step(now) {
+    // Si el usuario empezó a arrastrar, abortar el movimiento autónomo.
+    if (dragging) { wanderAnimFrame = null; return; }
     const t    = Math.min(1, (now - startTime) / duration);
     const ease = t < 0.5 ? 2*t*t : -1+(4-2*t)*t;
     petX = startX + (targetX - startX) * ease;

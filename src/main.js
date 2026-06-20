@@ -456,25 +456,43 @@ ipcMain.on('pet:context-menu', (event) => {
     : [];
 
   Menu.buildFromTemplate([
-    { label: '🎭 Hacer un truco',     click: () => win.webContents.send('do-trick')          },
-    { label: '💬 Mostrar globo',      click: () => win.webContents.send('show-bubble-random') },
+    { label: 'Eliminar',  click: () => removePet(wcId) },
+    { type: 'separator' },
+    { label: '🎭 Truco',  click: () => win.webContents.send('do-trick')          },
+    { label: '💬 Globo',  click: () => win.webContents.send('show-bubble-random') },
     { type: 'separator' },
     ...recentItems,
-    { label: 'Todos los personajes...', click: openSettings },
+    { label: 'Ajustes...', click: openSettings },
     { type: 'separator' },
-    { label: 'Quitar esta mascota', click: () => removePet(wcId) },
-    { label: 'Ajustes...',          click: openSettings          },
-    { type: 'separator' },
-    { label: 'Salir de Tipejos',    click: () => app.quit()      },
+    { label: 'Salir de Tipejos', click: () => app.quit() },
   ]).popup({ window: win });
 });
 
 // ─── IPC de ajustes ───────────────────────────────────────────────────────────
 
+// Extrae [w, h] del framesize de un personaje leyendo el agente.js con regex.
+// Resultado cacheado en memoria para no releer en cada apertura de ajustes.
+const _frameSizeCache = {};
+function getAgentFrameSize(name) {
+  if (_frameSizeCache[name]) return _frameSizeCache[name];
+  try {
+    const code = fs.readFileSync(path.join(AGENTS_DIR, name, 'agent.js'), 'utf8');
+    const m = code.match(/"framesize":\[(\d+),(\d+)\]/);
+    if (m) { _frameSizeCache[name] = [parseInt(m[1]), parseInt(m[2])]; return _frameSizeCache[name]; }
+  } catch {}
+  return null;
+}
+
 ipcMain.handle('settings:get', () => {
   const agents     = listAgents();
   const activePets = [...pets.entries()].map(([wcId, { character }]) => ({ wcId, character }));
-  return { config: { ...cfg }, agents, activePets, version: app.getVersion(), platform: process.platform };
+  // Tamaños de frame por personaje: usado en ajustes para filtrar por tamaño.
+  const agentSizes = {};
+  for (const name of agents) {
+    const sz = getAgentFrameSize(name);
+    if (sz) agentSizes[name] = sz;
+  }
+  return { config: { ...cfg }, agents, activePets, agentSizes, version: app.getVersion(), platform: process.platform };
 });
 
 ipcMain.on('settings:check-updates', () => {

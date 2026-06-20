@@ -94,10 +94,17 @@
     /* ── Mascotas activas ─────────────────────────────────── */
     #active-pets { display: flex; flex-wrap: wrap; gap: 8px; min-height: 36px; }
     .active-chip {
-      display: flex; align-items: center; gap: 6px;
+      display: flex; align-items: center; gap: 8px;
       background: #252548; border: 1px solid #3a3a70;
-      border-radius: 20px; padding: 4px 10px;
+      border-radius: 12px; padding: 4px 8px 4px 4px;
       font-size: 12px;
+    }
+    .active-chip .chip-thumb {
+      width: 36px; height: 36px; border-radius: 8px;
+      background-repeat: no-repeat;
+      background-size: contain;
+      background-position: center;
+      flex-shrink: 0;
     }
     .active-chip button {
       background: none; border: none; color: #ff6b6b;
@@ -108,6 +115,17 @@
     #no-pets { color: #666; font-style: italic; }
 
     /* ── Grilla de personajes ────────────────────────────── */
+    .size-filters {
+      display: flex; gap: 6px; margin-bottom: 10px; flex-wrap: wrap;
+    }
+    .size-btn {
+      background: #12121e; border: 1px solid #2a2a48; border-radius: 20px;
+      color: #888; font-size: 11px; padding: 3px 10px; cursor: pointer;
+      transition: 0.12s;
+    }
+    .size-btn.active { border-color: #6666dd; color: #c0c0ff; background: #1e1e3a; }
+    .size-btn:hover:not(.active) { border-color: #555; color: #bbb; }
+
     #char-grid {
       display: grid;
       grid-template-columns: repeat(5, 1fr);
@@ -121,6 +139,7 @@
       text-align: center;
       cursor: pointer;
       transition: border-color 0.15s, background 0.15s;
+      position: relative;
     }
     .char-card:hover { border-color: #6666dd; background: #1e1e3a; }
     .char-preview {
@@ -141,6 +160,12 @@
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
+    }
+    .char-size-badge {
+      position: absolute; top: 4px; right: 4px;
+      background: rgba(0,0,0,0.55); border-radius: 4px;
+      font-size: 8px; color: #777; padding: 1px 4px;
+      pointer-events: none;
     }
 
     /* ── Controles ───────────────────────────────────────── */
@@ -233,6 +258,12 @@
     <input type="search" id="char-search" placeholder="🔍  Buscar personaje..." autocomplete="off"
       style="width:100%; padding:8px 10px; background:#12121e; border:1px solid #2a2a48;
              border-radius:8px; color:#d0d0e8; font-size:13px; margin-bottom:10px; outline:none;">
+    <div class="size-filters">
+      <button class="size-btn active" data-size="all">Todos</button>
+      <button class="size-btn" data-size="small">Chicos (≤100px)</button>
+      <button class="size-btn" data-size="medium">Medianos (101–179px)</button>
+      <button class="size-btn" data-size="large">Grandes (≥180px)</button>
+    </div>
     <div id="no-results" style="display:none; color:#666; font-style:italic; padding:6px 0;">
       No hay personajes que coincidan.
     </div>

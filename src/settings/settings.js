@@ -32,36 +32,67 @@ function renderActivePets(pets) {
   for (const { wcId, character } of pets) {
     const chip = document.createElement('div');
     chip.className = 'active-chip';
-    chip.innerHTML = `<span>${character}</span><button title="Quitar" data-id="${wcId}">×</button>`;
-    chip.querySelector('button').addEventListener('click', (e) => {
+
+    const thumb = document.createElement('div');
+    thumb.className = 'chip-thumb';
+    thumb.style.backgroundImage = `url("../../assets/agents/${character}/thumb.png")`;
+
+    const label = document.createElement('span');
+    label.textContent = character;
+
+    const btn = document.createElement('button');
+    btn.title = 'Quitar';
+    btn.textContent = '×';
+    btn.addEventListener('click', (e) => {
       e.stopPropagation();
       window.settings.removePet(wcId);
     });
+
+    chip.appendChild(thumb);
+    chip.appendChild(label);
+    chip.appendChild(btn);
     container.appendChild(chip);
   }
 }
 
 // ── Renderizar grilla de personajes ───────────────────────────────────────────
-let allAgents = [];
+let allAgents  = [];
+let agentSizes = {};   // { name: [w, h] } recibido de main.js
+let activeSizeFilter = 'all';
 
-function renderCharGrid(agentList) {
-  allAgents = agentList;
-  filterCharGrid('');
+function sizeCategory(name) {
+  const sz = agentSizes[name];
+  if (!sz) return 'unknown';
+  const h = sz[1];
+  if (h <= 100)  return 'small';
+  if (h <= 179)  return 'medium';
+  return 'large';
 }
 
-function filterCharGrid(query) {
+function renderCharGrid(agentList, sizes) {
+  allAgents  = agentList;
+  if (sizes) agentSizes = sizes;
+  applyGridFilters();
+}
+
+function applyGridFilters() {
+  const q    = (document.getElementById('char-search')?.value || '').trim().toLowerCase();
+  const size = activeSizeFilter;
+  const filtered = allAgents.filter((n) => {
+    if (q && !n.toLowerCase().includes(q)) return false;
+    if (size !== 'all' && sizeCategory(n) !== size) return false;
+    return true;
+  });
+
   const grid      = document.getElementById('char-grid');
   const noResults = document.getElementById('no-results');
-  const q         = query.trim().toLowerCase();
-  const filtered  = q ? allAgents.filter((n) => n.toLowerCase().includes(q)) : allAgents;
-
   grid.innerHTML = '';
   noResults.style.display = filtered.length === 0 ? '' : 'none';
 
   const countEl = document.getElementById('char-count');
-  if (countEl) countEl.textContent = q
-    ? `(${filtered.length} de ${allAgents.length})`
-    : `(${allAgents.length} personajes)`;
+  if (countEl) countEl.textContent = filtered.length === allAgents.length
+    ? `(${allAgents.length} personajes)`
+    : `(${filtered.length} de ${allAgents.length})`;
 
   for (const name of filtered) {
     const card = document.createElement('div');
@@ -82,10 +113,30 @@ function filterCharGrid(query) {
 
     card.appendChild(preview);
     card.appendChild(label);
+
+    // Badge de tamaño
+    const sz = agentSizes[name];
+    if (sz) {
+      const badge = document.createElement('div');
+      badge.className   = 'char-size-badge';
+      badge.textContent = `${sz[0]}×${sz[1]}`;
+      card.appendChild(badge);
+    }
+
     card.addEventListener('click', () => window.settings.addPet(name));
     grid.appendChild(card);
   }
 }
+
+// Botones de filtro por tamaño
+document.querySelectorAll('.size-btn').forEach((btn) => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.size-btn').forEach((b) => b.classList.remove('active'));
+    btn.classList.add('active');
+    activeSizeFilter = btn.dataset.size;
+    applyGridFilters();
+  });
+});
 
 // ── Leer valores del formulario ────────────────────────────────────────────────
 function readForm() {
@@ -165,8 +216,8 @@ function wireListeners() {
     });
   });
 
-  document.getElementById('char-search').addEventListener('input', (e) => {
-    filterCharGrid(e.target.value);
+  document.getElementById('char-search').addEventListener('input', () => {
+    applyGridFilters();
   });
 
   document.getElementById('btn-close').addEventListener('click', () => {
@@ -176,6 +227,17 @@ function wireListeners() {
 
 // ── Historial de versiones ────────────────────────────────────────────────────
 const CHANGELOG = [
+  {
+    version: '0.2.29',
+    date: '20 jun 2026',
+    changes: [
+      'Fix crítico: al arrastrar en notebooks con escala de pantalla distinta, el personaje y el globo se iban en sentidos opuestos',
+      'Al agregar un personaje ya no se disparan 5 mensajes seguidos — hay un período de gracia de 8 segundos',
+      'Menú clic derecho simplificado: "Eliminar" es la primera opción, menos opciones en total',
+      'Mascotas activas ahora muestran la foto del personaje',
+      'Grilla de personajes: filtros por tamaño (Chicos / Medianos / Grandes) y badge con dimensiones en cada card',
+    ],
+  },
   {
     version: '0.2.28',
     date: '20 jun 2026',
@@ -478,7 +540,7 @@ function wireUpdateButton(isWindows) {
 
   populateForm(config);
   renderActivePets(activePets);
-  renderCharGrid(agents);
+  renderCharGrid(agents, data.agentSizes);
   wireListeners();
   wireAutoApply();
   wireUpdateButton(data.platform === 'win32');
