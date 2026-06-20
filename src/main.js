@@ -11,6 +11,8 @@ const AGENTS_DIR  = path.join(ASSETS_DIR, 'agents');
 const ICON_PATH   = path.join(ASSETS_DIR, 'icon.png');
 const CONFIG_PATH = path.join(app.getPath('userData'), 'config.json');
 const BUBBLE_PAD  = 80; // mismo valor que en renderer.js
+const WIN_W       = 220;
+const WIN_H       = 220 + BUBBLE_PAD;
 
 const DEFAULT_CONFIG = {
   soundOn:           false,
@@ -44,9 +46,13 @@ function readConfig() {
 }
 
 function saveConfig() {
-  const petList = [...pets.values()].map(({ win, character }) => {
+  const petList = [...pets.values()].map(({ win, character, agentW, agentH }) => {
     const [x, y] = win.getPosition();
-    return { character, x, y };
+    // Revertir el desplazamiento de agent-size para que al abrir de nuevo
+    // createPet + agent-size reproduzcan exactamente esta posición.
+    const saveX = agentW != null ? x - (WIN_W - agentW) : x;
+    const saveY = agentH != null ? y - (WIN_H - agentH) : y;
+    return { character, x: saveX, y: saveY };
   });
   cfg.pets = petList;
   try { fs.writeFileSync(CONFIG_PATH, JSON.stringify(cfg, null, 2)); }
@@ -81,44 +87,38 @@ function listAgents() {
 // ─── Crear ventana de mascota ─────────────────────────────────────────────────
 
 function clampToBounds(x, y, w, h) {
-  // Si la ventana cae dentro de algún display, la devuelve igual.
-  // Si no, la mueve a la esquina inferior-derecha del display más cercano.
+  // Encuentra el display con mayor área de solapamiento con la ventana.
+  // Clampea la posición para que la ventana quede COMPLETAMENTE dentro del workArea.
   const displays = screen.getAllDisplays();
-  const cx = x + w / 2;
-  const cy = y + h / 2;
-  const inside = displays.some(({ bounds }) =>
-    cx >= bounds.x && cx <= bounds.x + bounds.width &&
-    cy >= bounds.y && cy <= bounds.y + bounds.height
-  );
-  if (inside) return { x, y };
-  // Encontrar el display más cercano al centro de la ventana
-  const best = displays.reduce((prev, d) => {
-    const dx = cx - (d.bounds.x + d.bounds.width  / 2);
-    const dy = cy - (d.bounds.y + d.bounds.height / 2);
-    const dist = dx * dx + dy * dy;
-    return dist < prev.dist ? { d, dist } : prev;
-  }, { d: displays[0], dist: Infinity }).d;
+  let best = displays[0];
+  let bestOverlap = -1;
+  for (const d of displays) {
+    const { bounds } = d;
+    const ox = Math.max(0, Math.min(x + w, bounds.x + bounds.width)  - Math.max(x, bounds.x));
+    const oy = Math.max(0, Math.min(y + h, bounds.y + bounds.height) - Math.max(y, bounds.y));
+    const overlap = ox * oy;
+    if (overlap > bestOverlap) { bestOverlap = overlap; best = d; }
+  }
   const wa = best.workArea;
   return {
-    x: wa.x + wa.width  - w - 20,
-    y: wa.y + wa.height - h - 20,
+    x: Math.max(wa.x, Math.min(x, wa.x + wa.width  - w)),
+    y: Math.max(wa.y, Math.min(y, wa.y + wa.height - h)),
   };
 }
 
 function createPet(character, x, y) {
   const { workArea } = screen.getPrimaryDisplay();
   const offset   = pets.size;
-  const W = 220, H = 220 + BUBBLE_PAD;
-  const defaultX = workArea.x + workArea.width  - W - offset * 40;
-  const defaultY = workArea.y + workArea.height - H - offset * 30;
+  const defaultX = workArea.x + workArea.width  - WIN_W - offset * 40;
+  const defaultY = workArea.y + workArea.height - WIN_H - offset * 30;
 
   const rawX = x != null ? x : defaultX;
   const rawY = y != null ? y : defaultY;
-  const { x: finalX, y: finalY } = clampToBounds(rawX, rawY, W, H);
+  const { x: finalX, y: finalY } = clampToBounds(rawX, rawY, WIN_W, WIN_H);
 
   const win = new BrowserWindow({
-    width:  W,
-    height: H,
+    width:  WIN_W,
+    height: WIN_H,
     x: Math.round(finalX),
     y: Math.round(finalY),
     frame:           false,
@@ -149,7 +149,7 @@ function createPet(character, x, y) {
   win.loadFile(path.join(__dirname, 'renderer', 'index.html'));
 
   const wcId = win.webContents.id;
-  pets.set(wcId, { win, character });
+  pets.set(wcId, { win, character, agentW: null, agentH: null });
 
   win.webContents.on('console-message', (_e, _lv, msg) => console.log('[renderer]', msg));
   win.webContents.on('render-process-gone', (_e, d) => console.error('[renderer] caído:', d.reason));
@@ -378,15 +378,23 @@ ipcMain.on('set-ignore-mouse', (event, ignore) => {
 
 ipcMain.on('set-position', (event, x, y) => {
   const win = BrowserWindow.fromWebContents(event.sender);
-  if (win) win.setPosition(Math.round(x), Math.round(y));
+  if (!win) return;
+  const [w, h] = win.getSize();
+  const { x: cx, y: cy } = clampToBounds(x, y, w, h);
+  win.setPosition(Math.round(cx), Math.round(cy));
 });
 
 ipcMain.on('agent-size', (event, w, h) => {
   const win = BrowserWindow.fromWebContents(event.sender);
   if (!win) return;
+  const pet = pets.get(event.sender.id);
   const [curW, curH] = win.getSize();
   const [x, y]       = win.getPosition();
-  win.setBounds({ x: x + (curW - w), y: y + (curH - h), width: w, height: h });
+  const newX = x + (curW - w);
+  const newY = y + (curH - h);
+  const { x: cx, y: cy } = clampToBounds(newX, newY, w, h);
+  win.setBounds({ x: cx, y: cy, width: w, height: h });
+  if (pet) { pet.agentW = w; pet.agentH = h; }
 });
 
 ipcMain.on('character-ready', (event, name) => {
