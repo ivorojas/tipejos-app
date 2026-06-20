@@ -510,7 +510,7 @@ hit.addEventListener('contextmenu', (e) => {
   window.pet.showContextMenu();
 });
 
-// ── Clic: frase ocasional + easter egg de triple clic ────────────────────────
+// ── Clic: triple clic = easter egg (clic simple no muestra frase; solo doble clic) ──
 let clickHistory = [];
 hit.addEventListener('click', () => {
   const now = Date.now();
@@ -523,8 +523,6 @@ hit.addEventListener('click', () => {
     if (specials.length > 0)
       playAnimation(specials[Math.floor(Math.random() * specials.length)], loopIdle);
     if (speechBubbles) showCategoryBubble('click', 3700);
-  } else if (speechBubbles && Math.random() < 0.4) {
-    showCategoryBubble('click', 3700);
   }
 });
 
@@ -586,26 +584,26 @@ window.pet.onShowBubbleRandom(  ()  => showRandomBubble());
 // ── Frase según el día de la semana ──────────────────────────────────────────
 const DAY_PHRASES = [
   // 0 Domingo
-  ['Domingo. El lunes ya se asoma desde la esquina. 😬',
-   'El domingo siempre sabe a deuda moral, che.'],
+  ['La ansiedad del lunes ya te comió el domingo. Bien merecido, che.',
+   '¿Aprovechaste el finde? Los dos sabemos la respuesta.'],
   // 1 Lunes
-  ['Lunes de nuevo. El universo tiene mala onda con vos. 😒',
-   'Si el lunes te gusta, consultá a un médico. 🩺'],
+  ['Lunes. Otra semana para confirmar lo que todos ya sospechamos de vos.',
+   '¡Lunes! Mirá que arrancás con energía... de durar hasta las 9 y media.'],
   // 2 Martes
-  ['Martes: ni te cases ni te embarques. Laburá nomás.',
-   'El martes es un lunes disfrazado. No te dejés engañar.'],
+  ['Martes. Ya no podés culpar al lunes. Te quedaste sin excusas, genio.',
+   'Martes: la semana arrancó y vos todavía en modo "me estoy adaptando".'],
   // 3 Miércoles
-  ['Mitad de semana, che. Ya la hiciste... a medias. 😅',
-   'Miércoles: Ecuador de la semana. Igual sufrís.'],
+  ['Mitad de semana. ¿Qué hiciste hasta acá? Sí, exactamente eso: nada.',
+   'Miércoles. Llegaste al Ecuador sin producir nada. Muy coherente.'],
   // 4 Jueves
-  ['Jueves. Viernes de los pobres. Aguantá un poco más.',
-   'Ya CASI es viernes. No te ilusiones todavía. 😤'],
+  ['Jueves. Tan cerca del viernes, tan lejos de haber cumplido algo.',
+   '¿Jueves? Ya guardaste todo mentalmente para el finde, ¿no? Obvio.'],
   // 5 Viernes
-  ['¡VIERNES! Te lo ganaste arrastrándote desde el lunes. 🎉',
-   "Viernes: el único día que nadie miente al decir '¡por fin!'."],
+  ['Viernes. Sobreviviste otra semana de puro chamuyo. Qué talento.',
+   '¡Viernes! No cumpliste nada del lunes pero celebrá igual, dale. 🎉'],
   // 6 Sábado
-  ['¡Sábado! Arrancás 50 proyectos y terminás ninguno. 🛋️',
-   'Finde modo pijama. Cerebro apagado, cuerpo en automático.'],
+  ['Sábado. Tenías mil planes. Ya sabemos cómo termina esto, vamos.',
+   'Sábado en modo vegetal. La semana fue un desastre y el finde igual.'],
 ];
 
 function showDayBubble() {
@@ -616,30 +614,30 @@ function showDayBubble() {
 
 // ── Frase según la hora del día ───────────────────────────────────────────────
 const HOUR_PHRASES = [
-  'Medianoche. O sos muy comprometido o muy insomne.',          // 0
-  'La 1 de la mañana. Todo bien con vos, ¿no? 🤔',             // 1
-  'Las 2 AM. El silencio a esta hora es épico. 🌙',             // 2
-  'Las 3 AM. Tu cuerpo quiere dormir. Tu cerebro, no.',         // 3
-  'Las 4 AM. Ni los panaderos están despiertos todavía.',       // 4
-  'Las 5 AM. Terminando algo o empezando algo. Suerte.',        // 5
-  'Las 6 AM. El mundo despierta. Vos también, a regañadientes.',// 6
-  'Las 7. Hora de levantarse. En serio. Dale. ⏰',              // 7
-  'Las 8 AM. El día arrancó. Vos también, supongo.',            // 8
-  'Las 9. Café en mano y a arrancar. El caos ya empezó.',       // 9
-  "Las 10. Ya no hay excusa de 'recién me levanto'. ☕",        // 10
-  '¿Las 11? Casi mediodía. ¿Arrancaste algo productivo?',       // 11
-  "Mediodía. ¿Qué vas a comer? La respuesta incorrecta es nada.",// 12
-  'La 1 del mediodía. Siesta o café, elegís vos. 😴',           // 13
-  'Las 2 de la tarde. El bajón post-almuerzo es real. Resistí.',// 14
-  'Las 3 PM. ¿Cuánto hiciste hoy, en serio?',                  // 15
-  'Las 4 PM. El día se cierra y vos recién arrancaste, ¿no?',  // 16
-  'Las 5. Fin del horario laboral... teóricamente. 🏃',         // 17
-  'Las 6 PM. Menos mal que no estás en ese tráfico.',           // 18
-  'Las 7 de la tarde. ¿Segundo café o empezás con el vino? 🍷', // 19
-  'Las 8 de la noche. Cena o más laburo, ese es el dilema.',    // 20
-  'Las 9 de la noche. ¿Todavía laburando? Eso no está bien.',  // 21
-  'Las 10 de la noche. El día se termina, con o sin culpa.',    // 22
-  'Las 11 PM. Mañana te toca de vuelta. Qué aventura. 🎢',     // 23
+  'Medianoche. Sin sueño y sin logros. La combinación más tuya.',        // 0
+  'La 1 AM. ¿Mañana empezás en serio? Te escucho decir eso hace meses.',// 1
+  'Las 2 AM. Lo único productivo a esta hora es tu insomnio. Genial.',  // 2
+  'Las 3 AM. El sueño no te quiere y la productividad tampoco. Justo.', // 3
+  'Las 4 AM. Ni los más dedicados llegan hasta acá. Vos sí. Rarísimo.', // 4
+  'Las 5 AM. O no dormiste nada o sos un caso raro. Ninguna es buena.', // 5
+  'Las 6 AM. El mundo arranca. Vos también, pero a otra velocidad.',    // 6
+  'Las 7. Levantarse. Si sos vos, en 10 minutitos más nomás, claro.',   // 7
+  'Las 8. El día arrancó hace rato. Vos todavía calentando motores.',   // 8
+  'Las 9. Hora pico del chamuyo matutino. Ya sé cómo termina tu día.', // 9
+  "Las 10. Ya no hay excusa de 'recién me levanté'. Inventate otra.",   // 10
+  'Las 11. Casi mediodía y recién engranando. Rendimiento de élite.',   // 11
+  'Mediodía. Media jornada ida. La otra media viene a completar el cuadro.', // 12
+  'La 1. El post-almuerzo te va a matar antes que cualquier deadline.', // 13
+  'Las 2. El bajón de la tarde llegó antes que cualquier resultado.',   // 14
+  'Las 3. ¿Cuánto hiciste hoy realmente? Exactamente lo que imaginé.',  // 15
+  'Las 4. Dos horas hábiles. Perfectas para no hacer absolutamente nada.', // 16
+  'Las 5. Fin del horario laboral. Tu jornada terminó antes de empezar.',// 17
+  'Las 6. Un día más sumado a la estadística de logros nulos. Grande.',  // 18
+  'Las 7. Mirás el día y contás logros. Spoiler: el contador marcó cero.', // 19
+  'Las 8. ¿Cenaste o seguís procrastinando? Las dos cosas a la vez, asumo.', // 20
+  'Las 9 de la noche. El día se fue sin rastro de tu productividad.',   // 21
+  "Las 10. Otro día más que 'mañana empezás en serio'. Clásico tuyo.", // 22
+  'Las 11 PM. El potencial se fue a dormir antes que vos. Típico.',     // 23
 ];
 
 let lastShownHour = -1;
