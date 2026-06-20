@@ -42,52 +42,53 @@
     /* Globo de diálogo sobre el sprite. */
     #bubble {
       position: absolute;
-      left: 8px;
-      right: 8px;
-      /* `bottom` y `max-height` se fijan desde renderer.js según el alto del
-         sprite: el globo se ancla por su base y crece hacia arriba con el texto. */
-      min-height: 34px;
+      /* Centrado sobre el sprite; se ajusta al contenido (más cuadrado) y
+         envuelve al llegar al max-width. `bottom` se fija desde renderer.js. */
+      left: 50%;
+      transform: translateX(-50%);
+      width: max-content;
+      max-width: 200px;
+      min-width: 76px;
       box-sizing: border-box;
       background: #fffef0;
-      border: 2px solid #333;
-      border-radius: 10px;
-      padding: 8px 12px;
+      border: 1px solid #555;
+      border-radius: 14px;
+      padding: 9px 13px;
       font-family: 'Segoe UI', Tahoma, sans-serif;
       font-size: var(--bubble-fs);
       line-height: 1.35;
       color: #222;
-      display: flex;
-      align-items: center;
-      justify-content: center;
       text-align: center;
       word-break: break-word;
       overflow-wrap: anywhere;
       pointer-events: none;
       z-index: 200;
       opacity: 0;
-      transition: opacity 0.25s ease;
-      box-shadow: 1px 2px 4px rgba(0,0,0,0.25);
-      overflow: hidden;
+      transition: opacity 0.2s ease;
+      box-shadow: 1px 2px 5px rgba(0,0,0,0.20);
     }
     #bubble.visible { opacity: 1; }
 
-    /* Pequeño triángulo apuntando hacia abajo (hacia el muñequito). */
+    /* Triángulo apuntando hacia abajo (hacia el muñequito). Dos capas:
+       el borde oscuro y, encima, el relleno claro del globo. */
     #bubble::after {
       content: '';
       position: absolute;
-      bottom: -12px;
+      bottom: -8px;
       left: 50%;
       transform: translateX(-50%);
-      border: 6px solid transparent;
-      border-top-color: #333;
+      border: 7px solid transparent;
+      border-bottom: 0;
+      border-top-color: #555;
     }
     #bubble::before {
       content: '';
       position: absolute;
-      bottom: -9px;
+      bottom: -6px;
       left: 50%;
       transform: translateX(-50%);
-      border: 5px solid transparent;
+      border: 6px solid transparent;
+      border-bottom: 0;
       border-top-color: #fffef0;
       z-index: 1;
     }

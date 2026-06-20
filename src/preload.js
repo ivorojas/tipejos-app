@@ -4,7 +4,7 @@ contextBridge.exposeInMainWorld('pet', {
   getInitial:        ()        => ipcRenderer.invoke('get-initial'),
   getPosition:       ()        => ipcRenderer.invoke('get-position'),
   onSetCharacter:    (cb)      => ipcRenderer.on('set-character',      (_e, name) => cb(name)),
-  reportSize:        (w, h)    => ipcRenderer.send('agent-size',       Math.round(w), Math.round(h)),
+  reportSize:        (w, h, inset) => ipcRenderer.send('agent-size',   Math.round(w), Math.round(h), inset),
   characterReady:    (name)    => ipcRenderer.send('character-ready',  name),
   setIgnore:         (ignore)  => ipcRenderer.send('set-ignore-mouse', ignore),
   setPosition:       (x, y)   => ipcRenderer.send('set-position',     x, y),

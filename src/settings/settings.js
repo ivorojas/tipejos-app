@@ -177,6 +177,15 @@ function wireListeners() {
 // ── Historial de versiones ────────────────────────────────────────────────────
 const CHANGELOG = [
   {
+    version: '0.2.27',
+    date: '20 jun 2026',
+    changes: [
+      'Globos más cuadrados (se ajustan al texto en vez de ser una barra ancha)',
+      'Borde del globo más fino y volvió la colita que apunta al personaje',
+      'Arreglada la "pared invisible" al arrastrar: el muñeco ahora llega a los bordes de la pantalla',
+    ],
+  },
+  {
     version: '0.2.26',
     date: '20 jun 2026',
     changes: [

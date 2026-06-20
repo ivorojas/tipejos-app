@@ -89,9 +89,14 @@ function listAgents() {
 
 // ─── Crear ventana de mascota ─────────────────────────────────────────────────
 
-function clampToBounds(x, y, w, h) {
-  // Encuentra el display con mayor área de solapamiento con la ventana.
-  // Clampea la posición para que la ventana quede COMPLETAMENTE dentro del workArea.
+// `inset` = padding transparente alrededor del muñequito visible dentro de la
+// ventana {left, top, right, bottom}. La ventana es bastante más grande que el
+// sprite (deja lugar arriba para el globo y centra el sprite a lo ancho), así
+// que clampeamos el RECTÁNGULO VISIBLE del muñeco —no la ventana entera— para
+// que el padding transparente pueda salirse de pantalla y el muñeco llegue a
+// los bordes. Sin esto se siente una "pared invisible" al arrastrar.
+function clampToBounds(x, y, w, h, inset) {
+  const ins = inset || { left: 0, top: 0, right: 0, bottom: 0 };
   const displays = screen.getAllDisplays();
   let best = displays[0];
   let bestOverlap = -1;
@@ -103,10 +108,13 @@ function clampToBounds(x, y, w, h) {
     if (overlap > bestOverlap) { bestOverlap = overlap; best = d; }
   }
   const wa = best.workArea;
-  return {
-    x: Math.max(wa.x, Math.min(x, wa.x + wa.width  - w)),
-    y: Math.max(wa.y, Math.min(y, wa.y + wa.height - h)),
-  };
+  // Rectángulo visible del muñeco = ventana menos el padding transparente.
+  const visW = w - ins.left - ins.right;
+  const visH = h - ins.top  - ins.bottom;
+  // Clampeamos la esquina visible y después restamos el inset para volver a x/y de ventana.
+  const visX = Math.max(wa.x, Math.min(x + ins.left, wa.x + wa.width  - visW));
+  const visY = Math.max(wa.y, Math.min(y + ins.top,  wa.y + wa.height - visH));
+  return { x: visX - ins.left, y: visY - ins.top };
 }
 
 function createPet(character, x, y) {
@@ -398,19 +406,21 @@ ipcMain.on('set-position', (event, x, y) => {
   const win = BrowserWindow.fromWebContents(event.sender);
   if (!win) return;
   const [w, h] = win.getSize();
-  const { x: cx, y: cy } = clampToBounds(x, y, w, h);
+  const pet = pets.get(event.sender.id);
+  const { x: cx, y: cy } = clampToBounds(x, y, w, h, pet && pet.inset);
   win.setPosition(Math.round(cx), Math.round(cy));
 });
 
-ipcMain.on('agent-size', (event, w, h) => {
+ipcMain.on('agent-size', (event, w, h, inset) => {
   const win = BrowserWindow.fromWebContents(event.sender);
   if (!win) return;
   const pet = pets.get(event.sender.id);
+  if (pet && inset) pet.inset = inset; // padding transparente del muñeco dentro de la ventana
   const [curW, curH] = win.getSize();
   const [x, y]       = win.getPosition();
   const newX = x + (curW - w);
   const newY = y + (curH - h);
-  const { x: cx, y: cy } = clampToBounds(newX, newY, w, h);
+  const { x: cx, y: cy } = clampToBounds(newX, newY, w, h, pet && pet.inset);
   win.setBounds({ x: cx, y: cy, width: w, height: h });
   if (pet) { pet.agentW = w; pet.agentH = h; }
 });

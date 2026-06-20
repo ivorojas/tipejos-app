@@ -164,12 +164,15 @@ function layoutWindow(w, h) {
   for (const d of overlays) d.style.left = spriteLeft + 'px';
   hit.style.left = spriteLeft + 'px';
 
-  // El globo ocupa todo el ancho de la ventana, anclado por su base justo
-  // encima de la cabeza del sprite, y crece hacia arriba según el texto.
-  bubbleEl.style.bottom    = (h + BUBBLE_GAP) + 'px';
-  bubbleEl.style.maxHeight = (BUBBLE_PAD - BUBBLE_GAP - 10) + 'px';
+  // El globo se ancla por su base justo encima de la cabeza del sprite y
+  // crece hacia arriba según el texto (el ancho lo maneja el CSS).
+  bubbleEl.style.bottom = (h + BUBBLE_GAP) + 'px';
 
-  window.pet.reportSize(winW, h + BUBBLE_PAD);
+  // Inset = padding transparente alrededor del muñeco visible dentro de la
+  // ventana. Lo usa main.js para clampear el sprite (no la ventana) a la
+  // pantalla y evitar la "pared invisible" al arrastrar.
+  const inset = { left: spriteLeft, top: BUBBLE_PAD, right: spriteLeft, bottom: 0 };
+  window.pet.reportSize(winW, h + BUBBLE_PAD, inset);
 }
 
 function buildAgent(name) {
