@@ -502,7 +502,7 @@ window.addEventListener('mouseup', () => {
 
 // ── Interacción: doble clic y clic derecho ───────────────────────────────────
 hit.addEventListener('dblclick', () => {
-  window.pet.openSettings();
+  if (speechBubbles) showCategoryBubble('click', 3700);
 });
 
 hit.addEventListener('contextmenu', (e) => {
@@ -524,8 +524,7 @@ hit.addEventListener('click', () => {
       playAnimation(specials[Math.floor(Math.random() * specials.length)], loopIdle);
     if (speechBubbles) showCategoryBubble('click', 3700);
   } else if (speechBubbles && Math.random() < 0.4) {
-    // clic simple: a veces el personaje reacciona con una frase
-    showCategoryBubble('click', 3000);
+    showCategoryBubble('click', 3700);
   }
 });
 
