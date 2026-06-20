@@ -38,6 +38,7 @@ const pets = new Map();
 let tray       = null;
 let settingsWin = null;
 let cfg        = { ...DEFAULT_CONFIG };
+let quitting   = false; // true desde before-quit: evita que win.closed pise la config guardada
 
 // ─── Config ───────────────────────────────────────────────────────────────────
 
@@ -156,9 +157,12 @@ function createPet(character, x, y) {
   win.webContents.on('render-process-gone', (_e, d) => console.error('[renderer] caído:', d.reason));
   win.on('closed', () => {
     pets.delete(wcId);
-    saveConfig();
-    refreshTrayMenu();
-    notifySettingsPetsChanged();
+    if (!quitting) {
+      // Solo si el usuario cerró esta mascota manualmente (no es un cierre de app)
+      saveConfig();
+      refreshTrayMenu();
+      notifySettingsPetsChanged();
+    }
   });
   return win;
 }
@@ -575,5 +579,5 @@ function setupAutoUpdate() {
 }
 
 app.on('window-all-closed', (e) => e.preventDefault());
-app.on('before-quit',  saveConfig);
+app.on('before-quit',  () => { quitting = true; saveConfig(); });
 app.on('will-quit',    () => globalShortcut.unregisterAll());
