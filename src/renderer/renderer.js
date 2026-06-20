@@ -6,7 +6,9 @@
  */
 
 // ── Constantes ───────────────────────────────────────────────────────────────
-const BUBBLE_PAD = 80; // px de espacio reservado arriba para el globo de diálogo
+const BUBBLE_PAD   = 150; // px reservados arriba del sprite para el globo (debe coincidir con main.js)
+const BUBBLE_MIN_W = 250; // ancho mínimo de la ventana para que el globo tenga lugar para el texto
+const BUBBLE_GAP   = 12;  // separación entre la base del globo y la cabeza del sprite
 
 // ── Elementos del DOM ────────────────────────────────────────────────────────
 const stage      = document.getElementById('stage');
@@ -30,6 +32,7 @@ let anim           = null;
 let idleNames      = [];
 let funNames       = [];
 let loadToken      = 0;
+let spriteLeft     = 0;      // offset horizontal del sprite dentro de la ventana (centrado si la ventana es más ancha)
 
 // ── Ajustes (sincronizados desde main vía IPC) ───────────────────────────────
 let petScale        = 1.0;
@@ -151,6 +154,24 @@ function applyDisplayMap() {
   }
 }
 
+// Calcula el ancho de ventana y el offset horizontal del sprite, posiciona el
+// globo, y reporta el tamaño al proceso principal. Centra el sprite cuando la
+// ventana es más ancha que él (porque el globo necesita un ancho mínimo).
+function layoutWindow(w, h) {
+  const winW = Math.max(w, BUBBLE_MIN_W);
+  spriteLeft = Math.round((winW - w) / 2);
+
+  for (const d of overlays) d.style.left = spriteLeft + 'px';
+  hit.style.left = spriteLeft + 'px';
+
+  // El globo ocupa todo el ancho de la ventana, anclado por su base justo
+  // encima de la cabeza del sprite, y crece hacia arriba según el texto.
+  bubbleEl.style.bottom    = (h + BUBBLE_GAP) + 'px';
+  bubbleEl.style.maxHeight = (BUBBLE_PAD - BUBBLE_GAP - 10) + 'px';
+
+  window.pet.reportSize(winW, h + BUBBLE_PAD);
+}
+
 function buildAgent(name) {
   currentCharName = name;
   framesize = agentData.framesize || [124, 93];
@@ -179,7 +200,7 @@ function buildAgent(name) {
   hit.style.height = h + 'px';
   hit.style.top    = BUBBLE_PAD + 'px';
 
-  window.pet.reportSize(w, h + BUBBLE_PAD);
+  layoutWindow(w, h);
   window.pet.characterReady(name);
 
   prepareAnimationLists();
@@ -217,7 +238,7 @@ function applyScaleToOverlays() {
   }
   hit.style.width  = w + 'px';
   hit.style.height = h + 'px';
-  window.pet.reportSize(w, h + BUBBLE_PAD);
+  layoutWindow(w, h);
   if (curFrameImages) drawFrame(curFrameImages);
 }
 
@@ -486,7 +507,7 @@ let lastLookTime = 0;
 function checkProximity(mx, my) {
   if (!mouseReactions || dragging || !agentData) return;
   const [fw, fh] = framesize;
-  const cx   = Math.round(fw * petScale / 2);
+  const cx   = spriteLeft + Math.round(fw * petScale / 2);
   const cy   = BUBBLE_PAD + Math.round(fh * petScale / 2);
   const dist = Math.hypot(mx - cx, my - cy);
   const now  = Date.now();
@@ -553,13 +574,13 @@ function animateToPosition(targetX, targetY, duration, onDone) {
 
 // ── Hit-test por pixel ────────────────────────────────────────────────────────
 function isOpaqueAt(x, y) {
+  const spriteX = x - spriteLeft;
   const spriteY = y - BUBBLE_PAD;
-  if (spriteY < 0 || !agentData || !curFrameImages) return false;
+  if (spriteX < 0 || spriteY < 0 || !agentData || !curFrameImages) return false;
   if (!mapData) {
-    return x >= 0 && spriteY >= 0
-      && x < framesize[0] * petScale && spriteY < framesize[1] * petScale;
+    return spriteX < framesize[0] * petScale && spriteY < framesize[1] * petScale;
   }
-  const fx = Math.floor(x / petScale);
+  const fx = Math.floor(spriteX / petScale);
   const fy = Math.floor(spriteY / petScale);
   const R  = Math.ceil(7 / petScale); // tolerancia en píxeles del mapa
   for (let li = 0; li < curFrameImages.length; li++) {

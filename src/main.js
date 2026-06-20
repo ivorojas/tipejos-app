@@ -10,8 +10,8 @@ const ASSETS_DIR  = path.join(__dirname, '..', 'assets');
 const AGENTS_DIR  = path.join(ASSETS_DIR, 'agents');
 const ICON_PATH   = path.join(ASSETS_DIR, 'icon.png');
 const CONFIG_PATH = path.join(app.getPath('userData'), 'config.json');
-const BUBBLE_PAD  = 80; // mismo valor que en renderer.js
-const WIN_W       = 220;
+const BUBBLE_PAD  = 150; // mismo valor que en renderer.js
+const WIN_W       = 250;
 const WIN_H       = 220 + BUBBLE_PAD;
 
 const DEFAULT_CONFIG = {
@@ -636,8 +636,16 @@ function maybeCaptureScreenshots() {
   fs.mkdirSync(dir, { recursive: true });
   setTimeout(async () => {
     try {
+      // Forzar un globo con una frase larga para verificar el dimensionado de la caja.
+      const phrase = process.env.TIPEJOS_SHOT_BUBBLE
+        || 'Le preguntaste a Claude cómo se siente el lunes. Hay terapeutas, che.';
       let i = 0;
       for (const { win, character } of pets.values()) {
+        await win.webContents.executeJavaScript(
+          `(() => { const b=document.getElementById('bubble'), t=document.getElementById('bubble-text');`
+          + ` t.textContent=${JSON.stringify(phrase)}; b.classList.add('visible'); })()`
+        ).catch(() => {});
+        await new Promise((r) => setTimeout(r, 350));
         const img = await win.webContents.capturePage();
         fs.writeFileSync(path.join(dir, `pet-${i}-${character}.png`), img.toPNG());
         i++;

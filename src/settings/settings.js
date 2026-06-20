@@ -177,6 +177,15 @@ function wireListeners() {
 // ── Historial de versiones ────────────────────────────────────────────────────
 const CHANGELOG = [
   {
+    version: '0.2.25',
+    date: '20 jun 2026',
+    changes: [
+      'Globos de diálogo más grandes: ahora se ve TODO el texto, sin letras cortadas',
+      'La caja crece a lo alto según la frase y tiene ancho mínimo para frases largas',
+      'El muñeco queda centrado debajo del globo',
+    ],
+  },
+  {
     version: '0.2.24',
     date: '20 jun 2026',
     changes: [

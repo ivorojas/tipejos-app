@@ -42,15 +42,16 @@
     /* Globo de diálogo sobre el sprite. */
     #bubble {
       position: absolute;
-      top: 4px;
-      left: 4px;
-      right: 4px;
-      min-height: 52px;
-      max-height: 72px;
+      left: 8px;
+      right: 8px;
+      /* `bottom` y `max-height` se fijan desde renderer.js según el alto del
+         sprite: el globo se ancla por su base y crece hacia arriba con el texto. */
+      min-height: 34px;
+      box-sizing: border-box;
       background: #fffef0;
       border: 2px solid #333;
       border-radius: 10px;
-      padding: 6px 10px;
+      padding: 8px 12px;
       font-family: 'Segoe UI', Tahoma, sans-serif;
       font-size: var(--bubble-fs);
       line-height: 1.35;
@@ -59,6 +60,8 @@
       align-items: center;
       justify-content: center;
       text-align: center;
+      word-break: break-word;
+      overflow-wrap: anywhere;
       pointer-events: none;
       z-index: 200;
       opacity: 0;
