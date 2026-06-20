@@ -302,6 +302,15 @@ function wireListeners() {
 // ── Historial de versiones ────────────────────────────────────────────────────
 const CHANGELOG = [
   {
+    version: '0.2.37',
+    date: '20 jun 2026',
+    changes: [
+      'Rediseño completo de Ajustes: estética "soft modern" con acento violeta, switches, sliders refinados y mejor jerarquía',
+      'Mascotas activas como chips, filtros tipo segmented control y tarjetas de personaje más prolijas',
+      'Tinder de mensajes y todos los controles repensados para que se vea hermoso y ordenado',
+    ],
+  },
+  {
     version: '0.2.36',
     date: '20 jun 2026',
     changes: [
