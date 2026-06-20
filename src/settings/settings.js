@@ -228,6 +228,13 @@ function wireListeners() {
 // ── Historial de versiones ────────────────────────────────────────────────────
 const CHANGELOG = [
   {
+    version: '0.2.33',
+    date: '20 jun 2026',
+    changes: [
+      'Fix definitivo drag en DPI 125%: reemplazado win.setPosition() por win.setBounds() con tamaño explícito — evita la expansión de ventana del DWM de Windows que desalineaba el globo y el sprite',
+    ],
+  },
+  {
     version: '0.2.32',
     date: '20 jun 2026',
     changes: [

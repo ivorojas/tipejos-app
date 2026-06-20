@@ -405,10 +405,14 @@ ipcMain.on('set-ignore-mouse', (event, ignore) => {
 ipcMain.on('set-position', (event, x, y) => {
   const win = BrowserWindow.fromWebContents(event.sender);
   if (!win) return;
-  const [w, h] = win.getSize();
   const pet = pets.get(event.sender.id);
+  // En Windows con DPI ≠ 100%, win.setPosition() solo puede expandir la ventana
+  // levemente por cada llamada (bug DWM). Usando setBounds con tamaño explícito
+  // el ancho se mantiene fijo durante el drag y el globo no se desalinea.
+  const w = (pet && pet.agentW) || win.getSize()[0];
+  const h = (pet && pet.agentH) || win.getSize()[1];
   const { x: cx, y: cy } = clampToBounds(x, y, w, h, pet && pet.inset);
-  win.setPosition(Math.round(cx), Math.round(cy));
+  win.setBounds({ x: Math.round(cx), y: Math.round(cy), width: w, height: h });
 });
 
 ipcMain.on('drag:start', (event) => {
