@@ -177,6 +177,14 @@ function wireListeners() {
 // ── Historial de versiones ────────────────────────────────────────────────────
 const CHANGELOG = [
   {
+    version: '0.2.24',
+    date: '20 jun 2026',
+    changes: [
+      'Fix importante: el upscaling con IA nunca corría en la app instalada (el sprite quedaba atrapado dentro del paquete y waifu2x no podía leerlo)',
+      'Ahora sí: la primera vez que abrís un personaje se genera la versión IA y a partir de ahí se ve nítido y suave',
+    ],
+  },
+  {
     version: '0.2.23',
     date: '20 jun 2026',
     changes: [

@@ -536,8 +536,20 @@ ipcMain.on('sprite:request-ai', (_e, name) => {
   fs.mkdirSync(outDir, { recursive: true });
   aiInProgress.add(name);
 
+  // El map.png vive DENTRO del app.asar en producción. waifu2x es un binario
+  // nativo y no sabe leer adentro del asar, así que primero copiamos el sprite
+  // a un archivo temporal real (la fs de Electron sí lee adentro del asar) y
+  // corremos waifu2x sobre esa copia.
+  const tmpIn = path.join(app.getPath('temp'), `tipejos-src-${name}-${process.pid}.png`);
+  try {
+    fs.copyFileSync(srcPath, tmpIn);
+  } catch {
+    aiInProgress.delete(name);
+    return;
+  }
+
   const args = [
-    '-i', srcPath,
+    '-i', tmpIn,
     '-o', outPath,
     '-n', '1',
     '-s', '2',
@@ -547,6 +559,7 @@ ipcMain.on('sprite:request-ai', (_e, name) => {
 
   execFile(exe, args, { windowsHide: true }, (err) => {
     aiInProgress.delete(name);
+    try { fs.unlinkSync(tmpIn); } catch { /* ya no está */ }
     if (!err && fs.existsSync(outPath)) broadcastAiReady(name, outPath);
   });
 });
