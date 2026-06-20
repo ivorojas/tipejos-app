@@ -47,7 +47,8 @@
       /* Centrado sobre el sprite; se ajusta al contenido (más cuadrado) y
          envuelve al llegar al max-width. `bottom` se fija desde renderer.js. */
       left: 50%;
-      transform: translateX(-50%);
+      transform: translateX(-50%) translateZ(0); /* capa GPU propia = sin desfase en drag */
+      will-change: opacity;
       width: max-content;
       max-width: 200px;
       min-width: 76px;

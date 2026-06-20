@@ -411,18 +411,31 @@ ipcMain.on('set-position', (event, x, y) => {
   win.setPosition(Math.round(cx), Math.round(cy));
 });
 
+ipcMain.on('drag:start', (event) => {
+  const pet = pets.get(event.sender.id);
+  if (pet) pet.isDragging = true;
+});
+
+ipcMain.on('drag:end', (event) => {
+  const pet = pets.get(event.sender.id);
+  if (pet) pet.isDragging = false;
+});
+
 ipcMain.on('agent-size', (event, w, h, inset) => {
   const win = BrowserWindow.fromWebContents(event.sender);
   if (!win) return;
   const pet = pets.get(event.sender.id);
-  if (pet && inset) pet.inset = inset; // padding transparente del muñeco dentro de la ventana
+  if (pet && inset) pet.inset = inset;
+  if (pet) { pet.agentW = w; pet.agentH = h; }
+  // No redimensionar durante un drag — evita que el globo y el sprite
+  // se desalineen por un win.setBounds que cambia el ancho mid-drag.
+  if (pet?.isDragging) return;
   const [curW, curH] = win.getSize();
   const [x, y]       = win.getPosition();
   const newX = x + (curW - w);
   const newY = y + (curH - h);
   const { x: cx, y: cy } = clampToBounds(newX, newY, w, h, pet && pet.inset);
   win.setBounds({ x: cx, y: cy, width: w, height: h });
-  if (pet) { pet.agentW = w; pet.agentH = h; }
 });
 
 ipcMain.on('character-ready', (event, name) => {

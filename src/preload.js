@@ -8,6 +8,8 @@ contextBridge.exposeInMainWorld('pet', {
   characterReady:    (name)    => ipcRenderer.send('character-ready',  name),
   setIgnore:         (ignore)  => ipcRenderer.send('set-ignore-mouse', ignore),
   setPosition:       (x, y)   => ipcRenderer.send('set-position',     x, y),
+  dragStart:         ()        => ipcRenderer.send('drag:start'),
+  dragEnd:           ()        => ipcRenderer.send('drag:end'),
   showContextMenu:   ()        => ipcRenderer.send('pet:context-menu'),
   openSettings:      ()        => ipcRenderer.send('pet:open-settings'),
   // Ajustes que vienen del proceso principal

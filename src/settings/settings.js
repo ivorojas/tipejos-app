@@ -228,10 +228,18 @@ function wireListeners() {
 // ── Historial de versiones ────────────────────────────────────────────────────
 const CHANGELOG = [
   {
+    version: '0.2.31',
+    date: '20 jun 2026',
+    changes: [
+      'Fix arrastre: main.js ahora bloquea win.setBounds durante el drag (drag:start/end IPC), eliminando la causa real del desalineamiento entre sprite y globo',
+      'Burbuja forzada a capa GPU propia (translateZ) para evitar desfase visual de compositing',
+    ],
+  },
+  {
     version: '0.2.30',
     date: '20 jun 2026',
     changes: [
-      'Fix definitivo del arrastre en notebooks con DPI ≠ 100%: reemplazado el sistema de coordenadas absolutas (que mezclaba píxeles físicos y lógicos) por deltas puros con movementX/Y',
+      'Fix drag en DPI ≠ 100%: coordenadas derivadas solo de CSS (e.screenX - e.clientX) y movementX/Y para deltas puros sin mezcla de unidades',
     ],
   },
   {

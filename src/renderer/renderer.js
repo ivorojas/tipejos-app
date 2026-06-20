@@ -660,20 +660,15 @@ hit.addEventListener('mousedown', (e) => {
   cancelWanderAnimation();
   dragging  = true;
   dragMoved = false;
-  // Derivamos la posición de la ventana SOLO de coordenadas CSS para evitar
-  // el bug en notebooks con DPI ≠ 100%: win.getPosition() devuelve píxeles
-  // físicos pero e.screenX/clientX están en píxeles lógicos, lo que causaba
-  // que el personaje se moviera en dirección contraria al mouse.
   petX = e.screenX - e.clientX;
   petY = e.screenY - e.clientY;
+  window.pet.dragStart();
   hit.classList.add('dragging');
   e.preventDefault();
 });
 
 window.addEventListener('mousemove', (e) => {
   if (dragging) {
-    // e.movementX/Y son deltas en píxeles CSS — siempre en el mismo espacio
-    // de coordenadas que e.screenX, sin riesgo de mezcla de unidades.
     if (e.movementX || e.movementY) dragMoved = true;
     petX += e.movementX;
     petY += e.movementY;
@@ -685,7 +680,11 @@ window.addEventListener('mousemove', (e) => {
 });
 
 window.addEventListener('mouseup', () => {
-  if (dragging) { dragging = false; hit.classList.remove('dragging'); }
+  if (dragging) {
+    dragging = false;
+    window.pet.dragEnd();
+    hit.classList.remove('dragging');
+  }
 });
 
 // ── Interacción: clics y clic derecho ────────────────────────────────────────
