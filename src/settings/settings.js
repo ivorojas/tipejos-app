@@ -302,6 +302,15 @@ function wireListeners() {
 // ── Historial de versiones ────────────────────────────────────────────────────
 const CHANGELOG = [
   {
+    version: '0.2.39',
+    date: '20 jun 2026',
+    changes: [
+      'Filtrar mensajes: selector de personaje ahora muestra grilla visual con foto (famosos primero)',
+      'Fix: personajes no desaparecen — ventana no se destruye accidentalmente al cerrarse',
+      'Fix: z-order se re-afirma cada 4 s para que el muñeco nunca quede debajo de otra ventana',
+    ],
+  },
+  {
     version: '0.2.38',
     date: '20 jun 2026',
     changes: [
@@ -709,20 +718,43 @@ let pfCharName    = '';
 function initPhraseFilter(cfg) {
   pfPhraseLikes = (cfg && cfg.phraseLikes) || {};
 
-  const sel = document.getElementById('pf-char-select');
-  if (!sel) return;
-  const prev = sel.value;
-  sel.innerHTML = '<option value="">— Elegí un personaje —</option>';
+  const grid = document.getElementById('pf-char-grid');
+  if (!grid) return;
+  grid.innerHTML = '';
 
-  const chars = Object.keys(window.PHRASES_DATA || {}).sort();
-  for (const c of chars) {
-    const disliked = Object.values(pfPhraseLikes[c] || {}).filter(v => v === false).length;
-    const opt = document.createElement('option');
-    opt.value = c;
-    opt.textContent = c + (disliked > 0 ? ` (${disliked} descartadas)` : '');
-    sel.appendChild(opt);
+  const chars = sortAgents(Object.keys(window.PHRASES_DATA || {}));
+  for (const name of chars) {
+    const disliked = Object.values(pfPhraseLikes[name] || {}).filter(v => v === false).length;
+
+    const card = document.createElement('div');
+    card.className = 'char-card';
+    card.title = 'Filtrar frases de ' + name;
+
+    const preview = document.createElement('div');
+    preview.className = 'char-preview';
+    preview.style.backgroundImage    = `url("../../assets/agents/${name}/thumb.png")`;
+    preview.style.backgroundSize     = 'contain';
+    preview.style.backgroundRepeat   = 'no-repeat';
+    preview.style.backgroundPosition = 'center';
+
+    const label = document.createElement('div');
+    label.className   = 'char-name';
+    label.textContent = name;
+
+    card.appendChild(preview);
+    card.appendChild(label);
+
+    if (disliked > 0) {
+      const badge = document.createElement('div');
+      badge.className   = 'char-size-badge';
+      badge.textContent = `${disliked} ✕`;
+      badge.style.cssText = 'background:var(--red-soft);color:var(--red);border-color:var(--red-line)';
+      card.appendChild(badge);
+    }
+
+    card.addEventListener('click', () => pfOpen(name));
+    grid.appendChild(card);
   }
-  sel.value = prev;
 }
 
 let pfAnimTimer    = null;
@@ -816,7 +848,6 @@ function pfClose() {
   document.getElementById('pf-swiper').style.display   = 'none';
   document.getElementById('pf-done-msg').style.display = 'none';
   initPhraseFilter({ phraseLikes: pfPhraseLikes });
-  document.getElementById('pf-char-select').value = '';
 }
 
 function pfShowPhrase() {
@@ -901,13 +932,9 @@ function pfShowDone() {
   document.getElementById('pf-btn-another')?.addEventListener('click', () => {
     document.getElementById('pf-done-msg').style.display = 'none';
     document.getElementById('pf-picker').style.display   = '';
-    document.getElementById('pf-char-select').value = '';
   });
 }
 
-document.getElementById('pf-char-select')?.addEventListener('change', (e) => {
-  if (e.target.value) pfOpen(e.target.value);
-});
 document.getElementById('pf-back')?.addEventListener('click', pfClose);
 document.getElementById('pf-btn-yes')?.addEventListener('click', () => pfDecide(true));
 document.getElementById('pf-btn-no')?.addEventListener('click',  () => pfDecide(false));

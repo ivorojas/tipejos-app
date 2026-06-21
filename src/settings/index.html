@@ -189,7 +189,7 @@
     #no-pets { color: var(--text-4); font-style: italic; align-self: center; }
 
     /* ── Search input genérico ───────────────────────────── */
-    #char-search, #pf-char-select {
+    #char-search {
       width: 100%;
       padding: 10px 13px;
       background: var(--bg);
@@ -199,13 +199,12 @@
       font-size: 13px; font-family: inherit;
       outline: none;
       transition: border-color .18s var(--ease-soft), box-shadow .18s;
+      margin-bottom: 12px;
     }
-    #char-search { margin-bottom: 12px; }
     #char-search::placeholder { color: var(--text-4); }
-    #char-search:focus, #pf-char-select:focus {
+    #char-search:focus {
       border-color: var(--accent); box-shadow: 0 0 0 4px var(--accent-soft);
     }
-    #pf-char-select { cursor: pointer; }
 
     #char-count { font-weight: 500; color: var(--text-4); font-size: 11.5px; letter-spacing: 0; text-transform: none; }
 
@@ -228,12 +227,12 @@
     }
 
     /* ── Grilla de personajes ────────────────────────────── */
-    #char-grid {
+    #char-grid, #pf-char-grid {
       display: grid;
       grid-template-columns: repeat(4, 1fr);
       gap: 9px;
     }
-    @media (min-width: 460px) { #char-grid { grid-template-columns: repeat(5, 1fr); } }
+    @media (min-width: 460px) { #char-grid, #pf-char-grid { grid-template-columns: repeat(5, 1fr); } }
 
     .char-card {
       background: var(--bg);
@@ -639,9 +638,7 @@
       Revisá las frases de cada personaje. Las que descartés no se mostrarán más.
     </p>
     <div id="pf-picker">
-      <select id="pf-char-select">
-        <option value="">— Elegí un personaje —</option>
-      </select>
+      <div id="pf-char-grid"></div>
     </div>
     <div id="pf-swiper" style="display:none">
       <div id="pf-header">

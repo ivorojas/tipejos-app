@@ -167,11 +167,23 @@ function createPet(character, x, y) {
   pets.set(wcId, { win, character, agentW: null, agentH: null });
 
   win.webContents.on('console-message', (_e, _lv, msg) => console.log('[renderer]', msg));
-  win.webContents.on('render-process-gone', (_e, d) => console.error('[renderer] caído:', d.reason));
+  win.webContents.on('render-process-gone', (_e, d) => {
+    console.error('[renderer] caído:', d.reason);
+    if (!quitting) {
+      pets.delete(wcId);
+      saveConfig();
+      refreshTrayMenu();
+      notifySettingsPetsChanged();
+    }
+  });
+  win.on('close', (e) => {
+    // Impedir que el OS destruya la ventana — solo la ocultamos.
+    // La única forma de quitar una mascota es "Eliminar" en el menú contextual.
+    if (!quitting) e.preventDefault();
+  });
   win.on('closed', () => {
     pets.delete(wcId);
     if (!quitting) {
-      // Solo si el usuario cerró esta mascota manualmente (no es un cierre de app)
       saveConfig();
       refreshTrayMenu();
       notifySettingsPetsChanged();
@@ -189,7 +201,14 @@ function addPet(character) {
 
 function removePet(wcId) {
   const pet = pets.get(wcId);
-  if (pet) pet.win.destroy();
+  if (!pet) return;
+  if (!pet.win.isDestroyed()) pet.win.destroy();
+  else {
+    pets.delete(wcId);
+    saveConfig();
+    refreshTrayMenu();
+    notifySettingsPetsChanged();
+  }
 }
 
 function updateRecentCharacters(name) {
@@ -670,6 +689,13 @@ app.whenReady().then(() => {
       if (!win.isDestroyed()) { win.webContents.openDevTools({ mode: 'detach' }); break; }
     }
   });
+
+  // Re-afirmar z-order periódicamente (algunas ventanas del SO pueden empujar al muñeco abajo por un instante)
+  setInterval(() => {
+    for (const { win } of pets.values()) {
+      if (!win.isDestroyed() && win.isVisible()) win.setAlwaysOnTop(true, 'floating');
+    }
+  }, 4000);
 
   // Aplicar startup with Windows desde la config guardada
   app.setLoginItemSettings({ openAtLogin: !!cfg.startWithWindows });
