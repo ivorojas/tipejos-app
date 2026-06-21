@@ -302,6 +302,13 @@ function wireListeners() {
 // ── Historial de versiones ────────────────────────────────────────────────────
 const CHANGELOG = [
   {
+    version: '0.2.38',
+    date: '20 jun 2026',
+    changes: [
+      'Fix: ajustes maximizados ya no se estiran — contenido centrado con ancho máximo de 760px en cualquier resolución',
+    ],
+  },
+  {
     version: '0.2.37',
     date: '20 jun 2026',
     changes: [

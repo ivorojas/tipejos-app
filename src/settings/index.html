@@ -86,12 +86,16 @@
       -webkit-backdrop-filter: blur(14px);
       border-bottom: 1px solid var(--border);
       padding: 14px 18px;
-      display: flex;
-      align-items: center;
-      gap: 11px;
       position: sticky;
       top: 0;
       z-index: 10;
+    }
+    .header-inner {
+      max-width: 760px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      gap: 11px;
     }
     header .paw {
       font-size: 17px;
@@ -132,9 +136,11 @@
       background: linear-gradient(180deg, var(--surface), var(--bg-2));
       border: 1px solid var(--border);
       border-radius: var(--r-lg);
-      margin: 14px 16px 0;
+      margin: 14px auto 0;
       padding: 16px 16px 17px;
       box-shadow: var(--shadow-md);
+      max-width: 760px;
+      width: calc(100% - 32px);
     }
     .section h2 {
       font-size: 11px;
@@ -591,12 +597,14 @@
 </head>
 <body>
   <header>
-    <span class="paw">🐾</span>
-    <h1>Tipejos — Ajustes</h1>
-    <div class="header-right">
-      <button id="btn-changelog">📋 Novedades</button>
-      <button id="btn-update">🔄 Buscar actualización</button>
-      <span class="version" id="app-version"></span>
+    <div class="header-inner">
+      <span class="paw">🐾</span>
+      <h1>Tipejos — Ajustes</h1>
+      <div class="header-right">
+        <button id="btn-changelog">📋 Novedades</button>
+        <button id="btn-update">🔄 Buscar actualización</button>
+        <span class="version" id="app-version"></span>
+      </div>
     </div>
   </header>
 
