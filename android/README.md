@@ -49,6 +49,22 @@ Edita la lista `WANT` en el script para sumar/quitar personajes.
 - **Mostrar sobre otras apps** (overlay) — obligatorio, se activa a mano la primera vez.
 - **Notificaciones** (Android 13+) — para la notif persistente del service.
 
+## Auto-update (estilo escritorio, vía GitHub)
+
+La app revisa sola si hay versión nueva y se baja el APK; el usuario confirma con **un toque** (Android no permite instalación 100% silenciosa fuera de Play).
+
+- `UpdateChecker.kt` lee `android/latest.json` (raw de la rama `android-mvp`) y compara `versionCode`.
+- Si hay una mayor, muestra el banner **"Actualizar"** → baja el APK → abre el instalador.
+- **Requisito clave:** todos los APK se firman con la MISMA llave (`C:\android-tools\tipejos-release.jks`, credenciales en `keystore.properties`, ambos gitignored). Si se pierde la llave, no se puede actualizar la app instalada (habría que desinstalar/reinstalar). **Guardá backup de esa llave.**
+
+### Publicar una actualización (un comando)
+
+```
+bash android/scripts/publish-android.sh 0.1.1 "Qué cambió"
+```
+
+Hace todo: bump de versión, compila release firmado, crea el GitHub release, sube el APK y actualiza `latest.json`. Las apps instaladas lo ven en el próximo arranque.
+
 ## Limitaciones conocidas del MVP
 
 - El **sonido** todavía no suena (el toggle ya está, falta enganchar el audio).
