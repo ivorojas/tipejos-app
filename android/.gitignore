@@ -1,0 +1,12 @@
+.gradle/
+build/
+local.properties
+*.iml
+.idea/
+.DS_Store
+captures/
+.externalNativeBuild/
+.cxx/
+
+# Assets de personajes generados por scripts/extract-assets.js (se regeneran desde ../assets/agents)
+app/src/main/assets/agents/
