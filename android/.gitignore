@@ -10,3 +10,8 @@ captures/
 
 # Assets de personajes generados por scripts/extract-assets.js (se regeneran desde ../assets/agents)
 app/src/main/assets/agents/
+
+# Secretos de firma — NUNCA commitear
+keystore.properties
+*.jks
+*.keystore

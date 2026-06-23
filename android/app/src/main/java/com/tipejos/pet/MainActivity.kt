@@ -49,6 +49,38 @@ class MainActivity : AppCompatActivity() {
         b.recycler.adapter = CharAdapter(CharacterRepo.listCharacters(this)) { name ->
             onCharacterPicked(name)
         }
+
+        b.btnUpdate.setOnClickListener { startUpdate() }
+        checkForUpdate()
+    }
+
+    // ── Auto-update ──────────────────────────────────────────────────────────
+    private var pendingUpdate: UpdateChecker.Update? = null
+
+    private fun checkForUpdate() {
+        UpdateChecker.checkAsync { up ->
+            pendingUpdate = up
+            if (up != null) {
+                b.updateBanner.visibility = View.VISIBLE
+                b.updateText.text = "Versión nueva disponible: ${up.versionName}"
+                b.btnUpdate.isEnabled = true
+                b.btnUpdate.text = "Actualizar"
+            }
+        }
+    }
+
+    private fun startUpdate() {
+        val up = pendingUpdate ?: return
+        b.btnUpdate.isEnabled = false
+        UpdateChecker.downloadAndInstall(
+            this, up,
+            onProgress = { p -> b.btnUpdate.text = "Bajando… $p%" },
+            onError = { msg ->
+                b.btnUpdate.isEnabled = true
+                b.btnUpdate.text = "Reintentar"
+                Toast.makeText(this, msg, Toast.LENGTH_LONG).show()
+            }
+        )
     }
 
     override fun onResume() {

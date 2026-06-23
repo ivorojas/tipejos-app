@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<paths>
+    <!-- Carpeta donde se baja el APK de la actualización -->
+    <external-files-path name="updates" path="updates/" />
+    <cache-path name="cache" path="." />
+</paths>

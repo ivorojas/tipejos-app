@@ -1,6 +1,15 @@
+import java.util.Properties
+import java.io.FileInputStream
+
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
+}
+
+// Credenciales de firma desde keystore.properties (gitignored)
+val keystoreFile = rootProject.file("keystore.properties")
+val keystoreProps = Properties().apply {
+    if (keystoreFile.exists()) load(FileInputStream(keystoreFile))
 }
 
 android {
@@ -15,9 +24,22 @@ android {
         versionName = "0.1.0"
     }
 
+    signingConfigs {
+        create("release") {
+            if (keystoreFile.exists()) {
+                storeFile = file(keystoreProps["storeFile"] as String)
+                storePassword = keystoreProps["storePassword"] as String
+                keyAlias = keystoreProps["keyAlias"] as String
+                keyPassword = keystoreProps["keyPassword"] as String
+            }
+        }
+    }
+
     buildTypes {
         release {
             isMinifyEnabled = false
+            // Firmar con la llave estable para que el auto-update pueda reemplazar la app instalada.
+            if (keystoreFile.exists()) signingConfig = signingConfigs.getByName("release")
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
@@ -34,6 +56,7 @@ android {
     }
     buildFeatures {
         viewBinding = true
+        buildConfig = true   // expone BuildConfig.VERSION_CODE/NAME al updater
     }
     // Los sprite sheets ya están comprimidos; no recomprimir.
     androidResources {
