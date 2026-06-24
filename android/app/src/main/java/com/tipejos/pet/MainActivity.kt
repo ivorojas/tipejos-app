@@ -12,6 +12,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
+import android.widget.SeekBar
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
@@ -52,6 +53,29 @@ class MainActivity : AppCompatActivity() {
 
         b.btnUpdate.setOnClickListener { startUpdate() }
         checkForUpdate()
+        setupSettings()
+    }
+
+    // ── Ajustes (persisten en Prefs; el service los lee en vivo) ──────────────
+    private fun setupSettings() {
+        b.swBubbles.isChecked = Prefs.bubbles(this)
+        b.swBubbles.setOnCheckedChangeListener { _, v -> Prefs.setBubbles(this, v) }
+
+        b.swBounce.isChecked = Prefs.bounce(this)
+        b.swBounce.setOnCheckedChangeListener { _, v -> Prefs.setBounce(this, v) }
+
+        b.swSound.isChecked = Prefs.sound(this)
+        b.swSound.setOnCheckedChangeListener { _, v -> Prefs.setSound(this, v) }
+
+        val scale = Prefs.bubbleScale(this)
+        b.seekBubble.progress = (((scale - 0.7f) / 0.7f) * 100f).toInt().coerceIn(0, 100)
+        b.seekBubble.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
+            override fun onProgressChanged(sb: SeekBar?, p: Int, fromUser: Boolean) {
+                Prefs.setBubbleScale(this@MainActivity, 0.7f + (p / 100f) * 0.7f)
+            }
+            override fun onStartTrackingTouch(sb: SeekBar?) {}
+            override fun onStopTrackingTouch(sb: SeekBar?) {}
+        })
     }
 
     // ── Auto-update ──────────────────────────────────────────────────────────

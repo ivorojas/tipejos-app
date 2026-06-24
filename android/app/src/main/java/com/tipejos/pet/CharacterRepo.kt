@@ -3,6 +3,7 @@ package com.tipejos.pet
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.graphics.Rect
 import org.json.JSONObject
 
 /**
@@ -82,5 +83,58 @@ object CharacterRepo {
             dataCache[name] = data
             data
         } catch (e: Exception) { null }
+    }
+
+    // ── Frases ───────────────────────────────────────────────────────────────
+    data class Phrases(val idle: List<String>, val click: List<String>)
+
+    fun loadPhrases(ctx: Context, name: String): Phrases? = try {
+        val raw = ctx.assets.open("agents/$name/phrases.json").bufferedReader().use { it.readText() }
+        val obj = JSONObject(raw)
+        fun arr(k: String): List<String> {
+            val a = obj.optJSONArray(k) ?: return emptyList()
+            return (0 until a.length()).map { a.getString(it) }
+        }
+        Phrases(arr("idle"), arr("click").ifEmpty { arr("idle") })
+    } catch (e: Exception) { null }
+
+    // ── Sonidos ──────────────────────────────────────────────────────────────
+    fun listSounds(ctx: Context, name: String): List<String> = try {
+        ctx.assets.list("agents/$name/sounds")?.map { "agents/$name/sounds/$it" } ?: emptyList()
+    } catch (e: Exception) { emptyList() }
+
+    /**
+     * Recuadro real del personaje dentro de un frame (píxeles no transparentes),
+     * unión sobre todos los frames. Sirve para ajustar la ventana al muñeco y que toque los bordes.
+     * Devuelve coords locales [left,top,right,bottom] dentro de un frame de framesize.
+     */
+    fun computeContentBounds(sheet: Bitmap, data: CharData): Rect {
+        val fw = data.frameW; val fh = data.frameH
+        if (fw <= 0 || fh <= 0) return Rect(0, 0, 1, 1)
+        var minX = fw; var minY = fh; var maxX = 0; var maxY = 0
+        val origins = HashSet<Long>()
+        for (frames in data.animations.values)
+            for (f in frames) origins.add((f.x.toLong() shl 20) or f.y.toLong())
+        val px = IntArray(fw * fh)
+        val sw = sheet.width; val sh = sheet.height
+        for (key in origins) {
+            val fx = (key shr 20).toInt(); val fy = (key and 0xFFFFF).toInt()
+            if (fx < 0 || fy < 0 || fx + fw > sw || fy + fh > sh) continue
+            sheet.getPixels(px, 0, fw, fx, fy, fw, fh)
+            for (yy in 0 until fh) {
+                val row = yy * fw
+                for (xx in 0 until fw) {
+                    val a = (px[row + xx] ushr 24) and 0xFF
+                    if (a > 16) {
+                        if (xx < minX) minX = xx
+                        if (xx > maxX) maxX = xx
+                        if (yy < minY) minY = yy
+                        if (yy > maxY) maxY = yy
+                    }
+                }
+            }
+        }
+        if (maxX < minX || maxY < minY) return Rect(0, 0, fw, fh)
+        return Rect(minX, minY, maxX + 1, maxY + 1)
     }
 }

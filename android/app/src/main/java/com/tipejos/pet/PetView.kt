@@ -23,6 +23,7 @@ class PetView(
     context: Context,
     private val sheet: Bitmap,
     private val data: CharacterRepo.CharData,
+    private val bounds: Rect,          // recuadro real del muñeco dentro de cada frame
     private val callback: Callback
 ) : View(context) {
 
@@ -110,7 +111,11 @@ class PetView(
     override fun onDraw(canvas: Canvas) {
         if (frames.isEmpty()) return
         val fr = frames[frameIdx.coerceIn(0, frames.size - 1)]
-        srcRect.set(fr.x, fr.y, fr.x + data.frameW, fr.y + data.frameH)
+        // Recortar al recuadro real del muñeco (no al frame completo) para que llene la ventana.
+        srcRect.set(
+            fr.x + bounds.left, fr.y + bounds.top,
+            fr.x + bounds.right, fr.y + bounds.bottom
+        )
 
         val cx = width / 2f
         val cy = height / 2f

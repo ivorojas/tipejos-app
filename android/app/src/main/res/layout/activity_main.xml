@@ -75,12 +75,76 @@
             android:text="Permitir mostrar sobre otras apps" />
     </LinearLayout>
 
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:background="@color/surface"
+        android:padding="14dp"
+        android:layout_marginTop="14dp">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Ajustes"
+            android:textColor="@color/accent_bright"
+            android:textSize="13sp"
+            android:textStyle="bold"
+            android:layout_marginBottom="6dp" />
+
+        <androidx.appcompat.widget.SwitchCompat
+            android:id="@+id/swBubbles"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:minHeight="40dp"
+            android:textColor="@color/text"
+            android:text="Globos de texto" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="@color/text2"
+            android:textSize="13sp"
+            android:text="Tamaño del globo" />
+
+        <SeekBar
+            android:id="@+id/seekBubble"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:max="100" />
+
+        <androidx.appcompat.widget.SwitchCompat
+            android:id="@+id/swBounce"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:minHeight="40dp"
+            android:textColor="@color/text"
+            android:text="Rebote al tirarlo" />
+
+        <androidx.appcompat.widget.SwitchCompat
+            android:id="@+id/swSound"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:minHeight="40dp"
+            android:textColor="@color/text"
+            android:text="Sonido" />
+    </LinearLayout>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Elegí personaje"
+        android:textColor="@color/accent_bright"
+        android:textSize="13sp"
+        android:textStyle="bold"
+        android:layout_marginTop="16dp" />
+
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recycler"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
-        android:layout_marginTop="16dp"
+        android:layout_marginTop="8dp"
         android:clipToPadding="false" />
 
     <Button

@@ -20,8 +20,8 @@ android {
         applicationId = "com.tipejos.pet"
         minSdk = 26          // Android 8.0 — necesario para TYPE_APPLICATION_OVERLAY y foreground services modernos
         targetSdk = 34
-        versionCode = 1
-        versionName = "0.1.0"
+        versionCode = 2
+        versionName = "0.1.1"
     }
 
     signingConfigs {
@@ -58,9 +58,9 @@ android {
         viewBinding = true
         buildConfig = true   // expone BuildConfig.VERSION_CODE/NAME al updater
     }
-    // Los sprite sheets ya están comprimidos; no recomprimir.
+    // Sprites ya comprimidos; mp3 sin comprimir para poder abrirlos con openFd().
     androidResources {
-        noCompress += listOf("png", "json")
+        noCompress += listOf("png", "json", "mp3")
     }
 }
 

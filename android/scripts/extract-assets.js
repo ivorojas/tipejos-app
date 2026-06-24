@@ -1,27 +1,29 @@
 #!/usr/bin/env node
 /**
  * Extrae los assets de los personajes al proyecto Android.
- *  - Lee assets/agents/<Name>/agent.js (formato clippy.js: clippy.ready('Name', {...}))
- *  - Genera frames.json compacto: { framesize:[w,h], animations:{ name:[ {x,y,d}, ... ] } }
- *    (toma images[0] de cada frame — la capa base; suficiente para el MVP)
- *  - Copia map.png + thumb.png a android/app/src/main/assets/agents/<Name>/
+ *  - frames.json: { framesize:[w,h], animations:{ name:[ {x,y,d}, ... ] } }  (images[0] de cada frame)
+ *  - phrases.json: { idle:[...frases cortas...], click:[...] }  (desde src/renderer/phrases.js)
+ *  - sounds/<id>.mp3: audios decodificados desde sounds-mp3.js
+ *  - copia map.png + thumb.png
  *
  * Uso:  node android/scripts/extract-assets.js
  */
 const fs   = require('fs');
 const path = require('path');
+const vm   = require('vm');
 
-const REPO    = path.resolve(__dirname, '..', '..');
-const SRC     = path.join(REPO, 'assets', 'agents');
-const OUT     = path.join(REPO, 'android', 'app', 'src', 'main', 'assets', 'agents');
+const REPO = path.resolve(__dirname, '..', '..');
+const SRC  = path.join(REPO, 'assets', 'agents');
+const OUT  = path.join(REPO, 'android', 'app', 'src', 'main', 'assets', 'agents');
 
-// Personajes famosos para el MVP (los que existan en assets/agents)
+// Personajes para el MVP (famosos primero). Todos tienen frames + frases + sonidos.
 const WANT = [
-  'Clippy', 'Bonzi', 'Merlin', 'Peedy', 'Rocky', 'Rover',
-  'Dot', 'F1', 'Links', 'Genie', 'Genius', 'Earl',
+  'Clippy', 'Bonzi', 'Merlin', 'Peedy', 'Rocky', 'Rover', 'Dot', 'F1',
+  'Links', 'Genie', 'Genius', 'Earl', 'MotherNature', 'PowerPup', 'Scribble',
+  'OfficeLogo', 'Robby', 'Dolphin', 'Santa', 'Reaper', 'Wabbit', 'MonkeyKing',
+  'Saeko', 'BillG',
 ];
 
-// Animaciones que nos interesa portar (idle + algún truco). Si no existen, se ignoran.
 const KEEP = [
   'RestPose', 'Show', 'Greeting',
   'IdleEyeBrowRaise', 'IdleSideToSide', 'IdleFingerTap', 'IdleHeadScratch',
@@ -29,21 +31,37 @@ const KEEP = [
   'Wave', 'GestureUp', 'Pleased', 'Congratulate', 'GetAttention', 'Alert',
 ];
 
+const MAX_LEN = 70;   // frases más cortas para celular
+
+// ── Cargar PHRASES_DATA (es un window.PHRASES_DATA = {...}) ──────────────────
+function loadPhrasesData() {
+  const sandbox = { window: {} };
+  vm.createContext(sandbox);
+  vm.runInContext(fs.readFileSync(path.join(REPO, 'src', 'renderer', 'phrases.js'), 'utf8'), sandbox);
+  return sandbox.window.PHRASES_DATA || {};
+}
+
+function gather(ph, cat) {
+  const e = ph && ph[cat];
+  if (!e) return [];
+  const list = [].concat(e.roast || [], e.soft || []);
+  return [...new Set(list)].filter(s => s.length <= MAX_LEN);
+}
+
 function parseAgent(file) {
   const raw = fs.readFileSync(file, 'utf8');
-  const i = raw.indexOf('{');
-  const j = raw.lastIndexOf('}');
-  if (i < 0 || j < 0) throw new Error('no JSON en ' + file);
+  const i = raw.indexOf('{'), j = raw.lastIndexOf('}');
   return JSON.parse(raw.slice(i, j + 1));
 }
 
-function compact(data) {
+function compactFrames(data) {
   const out = { framesize: data.framesize, animations: {} };
   const anims = data.animations || {};
-  // Lista final: las KEEP que existan + cualquier "Idle*" presente
   const names = new Set();
   for (const k of KEEP) if (anims[k]) names.add(k);
   for (const k of Object.keys(anims)) if (/^Idle/i.test(k)) names.add(k);
+  // Fallback: si ninguna matcheó (nombres no estándar), incluir todas.
+  if (names.size === 0) for (const k of Object.keys(anims)) names.add(k);
   for (const name of names) {
     const frames = (anims[name].frames || []).map(f => {
       const img = (f.images && f.images[0]) || [0, 0];
@@ -54,23 +72,54 @@ function compact(data) {
   return out;
 }
 
+function extractSounds(file, outDir) {
+  if (!fs.existsSync(file)) return 0;
+  const raw = fs.readFileSync(file, 'utf8');
+  const re = /'([^']+)'\s*:\s*'data:audio\/[^;]+;base64,([^']+)'/g;
+  const sdir = path.join(outDir, 'sounds');
+  fs.mkdirSync(sdir, { recursive: true });
+  let n = 0, m;
+  while ((m = re.exec(raw)) !== null) {
+    const id = m[1].replace(/[^\w-]/g, '');
+    const buf = Buffer.from(m[2], 'base64');
+    if (buf.length > 100) { fs.writeFileSync(path.join(sdir, `${id}.mp3`), buf); n++; }
+  }
+  return n;
+}
+
+const PH = loadPhrasesData();
 let done = 0;
 const index = [];
 for (const name of WANT) {
   const dir = path.join(SRC, name);
-  const agentFile = path.join(dir, 'agent.js');
-  if (!fs.existsSync(agentFile)) { console.warn('skip (no existe):', name); continue; }
+  if (!fs.existsSync(path.join(dir, 'agent.js'))) { console.warn('skip:', name); continue; }
   try {
-    const data    = parseAgent(agentFile);
-    const compactD = compact(data);
-    const outDir  = path.join(OUT, name);
+    const data = parseAgent(path.join(dir, 'agent.js'));
+    const outDir = path.join(OUT, name);
     fs.mkdirSync(outDir, { recursive: true });
-    fs.writeFileSync(path.join(outDir, 'frames.json'), JSON.stringify(compactD));
+
+    // frames
+    const cf = compactFrames(data);
+    fs.writeFileSync(path.join(outDir, 'frames.json'), JSON.stringify(cf));
+
+    // phrases
+    const ph = PH[name] || {};
+    let idle = [...gather(ph, 'idle'), ...gather(ph, 'greeting')].slice(0, 40);
+    let click = gather(ph, 'click').slice(0, 20);
+    if (!idle.length) idle = ['👋', '🐾'];
+    if (!click.length) click = idle;
+    fs.writeFileSync(path.join(outDir, 'phrases.json'), JSON.stringify({ idle, click }));
+
+    // sounds
+    const nSounds = extractSounds(path.join(dir, 'sounds-mp3.js'), outDir);
+
+    // bitmaps
     fs.copyFileSync(path.join(dir, 'map.png'),   path.join(outDir, 'map.png'));
     fs.copyFileSync(path.join(dir, 'thumb.png'), path.join(outDir, 'thumb.png'));
+
     index.push(name);
     done++;
-    console.log(`✓ ${name}  (${Object.keys(compactD.animations).length} animaciones, ${compactD.framesize.join('x')})`);
+    console.log(`✓ ${name}  ${Object.keys(cf.animations).length} anim · ${idle.length} frases · ${nSounds} sonidos · ${cf.framesize.join('x')}`);
   } catch (e) {
     console.error('error en', name, e.message);
   }
