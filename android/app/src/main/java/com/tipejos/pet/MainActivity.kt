@@ -76,6 +76,24 @@ class MainActivity : AppCompatActivity() {
             override fun onStartTrackingTouch(sb: SeekBar?) {}
             override fun onStopTrackingTouch(sb: SeekBar?) {}
         })
+
+        // Tamaño del personaje: 0.6 … 1.6 (1.0 = default). Al soltar, recrea el pet en vivo.
+        val petScale = Prefs.petScale(this)
+        b.seekPet.progress = (((petScale - 0.6f) / 1.0f) * 100f).toInt().coerceIn(0, 100)
+        b.seekPet.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
+            override fun onProgressChanged(sb: SeekBar?, p: Int, fromUser: Boolean) {
+                Prefs.setPetScale(this@MainActivity, 0.6f + (p / 100f) * 1.0f)
+            }
+            override fun onStartTrackingTouch(sb: SeekBar?) {}
+            override fun onStopTrackingTouch(sb: SeekBar?) {
+                if (PetOverlayService.running) {
+                    // El service ya está en foreground; startService alcanza para recrear el pet.
+                    val i = Intent(this@MainActivity, PetOverlayService::class.java)
+                        .putExtra(PetOverlayService.EXTRA_RELOAD, true)
+                    startService(i)
+                }
+            }
+        })
     }
 
     // ── Auto-update ──────────────────────────────────────────────────────────

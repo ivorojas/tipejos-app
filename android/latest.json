@@ -1,6 +1,6 @@
 {
-  "versionCode": 2,
-  "versionName": "0.1.1",
-  "apkUrl": "https://github.com/ivorojas/tipejos-app/releases/download/android-v0.1.1/Tipejos-0.1.1.apk",
-  "notes": "Globos de texto (con tamaño ajustable), 24 personajes, sonidos, recuadro ajustado al muñeco, rebote configurable."
+  "versionCode": 3,
+  "versionName": "0.1.2",
+  "apkUrl": "https://github.com/ivorojas/tipejos-app/releases/download/android-v0.1.2/Tipejos-0.1.2.apk",
+  "notes": "El globo ahora sigue al personaje cuando se mueve. Nuevo slider para ajustar el tamaño del personaje."
 }

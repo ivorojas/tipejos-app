@@ -33,6 +33,7 @@ class PetOverlayService : Service(), PetView.Callback {
 
     companion object {
         const val EXTRA_CHARACTER = "character"
+        const val EXTRA_RELOAD = "reload"   // recrea el pet aplicando ajustes (ej: tamaño)
         private const val CHANNEL_ID = "tipejos_pet"
         private const val NOTIF_ID = 1
 
@@ -48,6 +49,8 @@ class PetOverlayService : Service(), PetView.Callback {
     private var petView: PetView? = null
     private var menuView: View? = null
     private var bubbleView: View? = null
+    private var bubbleParams: WindowManager.LayoutParams? = null
+    private var keepPos = false   // al recrear (reload), conservar la posición actual
 
     private var character = "Clippy"
     private var screenW = 0
@@ -68,7 +71,8 @@ class PetOverlayService : Service(), PetView.Callback {
     override fun onBind(intent: Intent?): IBinder? = null
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        character = intent?.getStringExtra(EXTRA_CHARACTER) ?: character
+        val reload = intent?.getBooleanExtra(EXTRA_RELOAD, false) == true
+        if (!reload) character = intent?.getStringExtra(EXTRA_CHARACTER) ?: character
         if (petView == null) {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
                 startForeground(
@@ -82,6 +86,7 @@ class PetOverlayService : Service(), PetView.Callback {
             running = true
             ui.postDelayed(bubbleTimer, 9000)
         } else {
+            keepPos = reload   // un cambio de tamaño conserva la posición; un cambio de personaje no
             recreatePet()
         }
         return START_STICKY
@@ -104,7 +109,8 @@ class PetOverlayService : Service(), PetView.Callback {
         // Tamaño físico proporcional a la resolución nativa del arte: arte grande
         // (Bonzi ~160px) se ve grande; arte chico (Clippy ~90px) se ve más chico y nítido.
         val density = resources.displayMetrics.density
-        val targetHdp = (contentH * 0.85f).coerceIn(64f, 150f)
+        val petScale = Prefs.petScale(this)
+        val targetHdp = (contentH * 0.85f).coerceIn(64f, 150f) * petScale
         val sc = (targetHdp * density) / contentH
         viewH = (contentH * sc).toInt().coerceAtLeast(1)
         viewW = (contentW * sc).toInt().coerceAtLeast(1)
@@ -121,9 +127,15 @@ class PetOverlayService : Service(), PetView.Callback {
             PixelFormat.TRANSLUCENT
         ).apply { gravity = Gravity.TOP or Gravity.START }
 
-        val margin = (16 * density)
-        posX = (screenW - viewW - margin).coerceAtLeast(0f)
-        posY = (screenH - viewH - margin * 5).coerceAtLeast(0f)
+        if (keepPos) {
+            // Conservar posición (ej: al cambiar el tamaño) clampeada a los nuevos límites.
+            posX = posX.coerceIn(0f, maxX()); posY = posY.coerceIn(0f, maxY())
+            keepPos = false
+        } else {
+            val margin = (16 * density)
+            posX = (screenW - viewW - margin).coerceAtLeast(0f)
+            posY = (screenH - viewH - margin * 5).coerceAtLeast(0f)
+        }
         params.x = posX.toInt(); params.y = posY.toInt()
 
         wm.addView(pv, params)
@@ -161,6 +173,7 @@ class PetOverlayService : Service(), PetView.Callback {
         posY = (posY + dyPx).coerceIn(0f, maxY())
         params.x = posX.toInt(); params.y = posY.toInt()
         petView?.let { wm.updateViewLayout(it, params) }
+        updateBubblePosition()
     }
 
     override fun onFling(vxPxPerSec: Float, vyPxPerSec: Float) {
@@ -210,6 +223,7 @@ class PetOverlayService : Service(), PetView.Callback {
 
             params.x = posX.toInt(); params.y = posY.toInt()
             petView?.let { wm.updateViewLayout(it, params) }
+            updateBubblePosition()
 
             if (abs(velX) < STOP_SPEED && abs(velY) < STOP_SPEED) { physicsActive = false; return }
             Choreographer.getInstance().postFrameCallback(this)
@@ -264,21 +278,35 @@ class PetOverlayService : Service(), PetView.Callback {
                 WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE or
                 WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS,
             PixelFormat.TRANSLUCENT
-        ).apply {
-            gravity = Gravity.TOP or Gravity.START
-            x = posX.toInt().coerceIn(0, (screenW - dp(230)).coerceAtLeast(0))
-            y = if (posY > dp(70)) (posY.toInt() - dp(54)) else (posY.toInt() + viewH)
-        }
+        ).apply { gravity = Gravity.TOP or Gravity.START }
+        positionBubble(lp)
         bubbleView = tv
-        try { wm.addView(tv, lp) } catch (e: Exception) { bubbleView = null; return }
+        bubbleParams = lp
+        try { wm.addView(tv, lp) } catch (e: Exception) { bubbleView = null; bubbleParams = null; return }
         ui.removeCallbacks(bubbleDismiss)
         ui.postDelayed(bubbleDismiss, 3800)
+    }
+
+    /** Coloca el globo arriba del pet (o abajo si está pegado al techo), siguiendo su posición. */
+    private fun positionBubble(lp: WindowManager.LayoutParams) {
+        val density = resources.displayMetrics.density
+        fun dp(v: Int) = (v * density).toInt()
+        lp.x = posX.toInt().coerceIn(0, (screenW - dp(230)).coerceAtLeast(0))
+        lp.y = if (posY > dp(70)) (posY.toInt() - dp(54)) else (posY.toInt() + viewH)
+    }
+
+    private fun updateBubblePosition() {
+        val v = bubbleView ?: return
+        val lp = bubbleParams ?: return
+        positionBubble(lp)
+        runCatching { wm.updateViewLayout(v, lp) }
     }
 
     private fun removeBubble() {
         ui.removeCallbacks(bubbleDismiss)
         bubbleView?.let { runCatching { wm.removeView(it) } }
         bubbleView = null
+        bubbleParams = null
     }
 
     // ── Menú flotante (long-press) ───────────────────────────────────────────

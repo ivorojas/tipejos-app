@@ -113,6 +113,19 @@
             android:layout_height="wrap_content"
             android:max="100" />
 
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="@color/text2"
+            android:textSize="13sp"
+            android:text="Tamaño del personaje" />
+
+        <SeekBar
+            android:id="@+id/seekPet"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:max="100" />
+
         <androidx.appcompat.widget.SwitchCompat
             android:id="@+id/swBounce"
             android:layout_width="match_parent"

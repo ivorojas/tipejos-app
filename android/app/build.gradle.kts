@@ -20,8 +20,8 @@ android {
         applicationId = "com.tipejos.pet"
         minSdk = 26          // Android 8.0 — necesario para TYPE_APPLICATION_OVERLAY y foreground services modernos
         targetSdk = 34
-        versionCode = 2
-        versionName = "0.1.1"
+        versionCode = 3
+        versionName = "0.1.2"
     }
 
     signingConfigs {

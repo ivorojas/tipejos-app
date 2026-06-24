@@ -18,4 +18,8 @@ object Prefs {
 
     fun sound(ctx: Context) = sp(ctx).getBoolean("sound", true)
     fun setSound(ctx: Context, v: Boolean) = sp(ctx).edit().putBoolean("sound", v).apply()
+
+    /** Escala del personaje: 0.6 (chico) … 1.6 (grande). 1.0 = tamaño por defecto. */
+    fun petScale(ctx: Context) = sp(ctx).getFloat("petScale", 1.0f)
+    fun setPetScale(ctx: Context, v: Float) = sp(ctx).edit().putFloat("petScale", v).apply()
 }
