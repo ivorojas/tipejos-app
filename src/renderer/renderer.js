@@ -1,5 +1,5 @@
 /*
- * Tipejos — motor de animación + comportamiento de las mascotas.
+ * Office Buddies — motor de animación + comportamiento de las mascotas.
  *
  * Formato agent.js:  clippy.ready('Nombre', { overlayCount, framesize:[w,h], sounds, animations })
  * Animación: background-position CSS sobre map.png escalado.
@@ -13,7 +13,7 @@ const BUBBLE_GAP   = 12;  // separación entre la base del globo y la cabeza del
 // ── Debug ────────────────────────────────────────────────────────────────────
 // Abrí DevTools con Ctrl+Shift+D y mirá la consola mientras arrastrás.
 const DBG = true;
-function dbg(...args) { if (DBG) console.log('[Tipejos]', ...args); }
+function dbg(...args) { if (DBG) console.log('[Office Buddies]', ...args); }
 
 // ── Elementos del DOM ────────────────────────────────────────────────────────
 const stage      = document.getElementById('stage');

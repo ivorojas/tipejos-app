@@ -288,7 +288,7 @@ function openSettings() {
     x, y,
     minWidth:  500,
     minHeight: 600,
-    title:     'Tipejos — Ajustes',
+    title:     'Office Buddies — Ajustes',
     icon:      ICON_PATH,
     show:      false,
     skipTaskbar: false,
@@ -325,7 +325,7 @@ function buildTray() {
     );
   }
   tray = new Tray(icon);
-  tray.setToolTip('Tipejos — mascotas de escritorio');
+  tray.setToolTip('Office Buddies — mascotas de escritorio');
   refreshTrayMenu();
   // En Windows el doble clic a veces se pierde con un context menu puesto;
   // atamos ambos para que abrir ajustes sea confiable.
@@ -502,7 +502,7 @@ ipcMain.on('pet:context-menu', (event) => {
     ...recentItems,
     { label: 'Ajustes...', click: openSettings },
     { type: 'separator' },
-    { label: 'Salir de Tipejos', click: () => app.quit() },
+    { label: 'Salir de Office Buddies', click: () => app.quit() },
     { type: 'separator' },
     { label: 'Eliminar',  click: () => removePet(wcId) },
   ]).popup({ window: win });
@@ -766,7 +766,7 @@ function setupAutoUpdate() {
   autoUpdater.on('update-downloaded', (info) => {
     const r = dialog.showMessageBoxSync({
       type:    'info',
-      title:   'Tipejos — Actualización disponible',
+      title:   'Office Buddies — Actualización disponible',
       message: `Hay una versión nueva (${info.version}). ¿Reiniciar ahora para actualizar?`,
       buttons: ['Reiniciar ahora', 'Después'],
       defaultId: 0,

@@ -1,6 +1,6 @@
 {
-  "name": "tipejos",
-  "version": "0.2.39",
+  "name": "office-buddies",
+  "version": "0.2.40",
   "description": "Mascotas de escritorio con los clásicos asistentes de Microsoft Office (Clippy, Merlin, Rover, El Genio...)",
   "main": "src/main.js",
   "scripts": {
@@ -20,8 +20,8 @@
   },
   "build": {
     "appId": "com.tipejos.desktoppets",
-    "productName": "Tipejos",
-    "copyright": "Tipejos",
+    "productName": "Office Buddies",
+    "copyright": "Office Buddies",
     "files": [
       "src/**/*",
       "assets/**/*"
@@ -37,7 +37,7 @@
       {
         "provider": "github",
         "owner": "ivorojas",
-        "repo": "tipejos-app",
+        "repo": "office-buddies",
         "releaseType": "release"
       }
     ],
@@ -64,7 +64,7 @@
           ]
         }
       ],
-      "artifactName": "Tipejos-Mac-${version}.dmg"
+      "artifactName": "OfficeBuddies-Mac-${version}.dmg"
     },
     "nsis": {
       "oneClick": true,
@@ -74,8 +74,8 @@
       "uninstallerIcon": "assets/icon.ico",
       "createDesktopShortcut": true,
       "createStartMenuShortcut": true,
-      "shortcutName": "Tipejos",
-      "artifactName": "Tipejos-Setup-${version}.exe"
+      "shortcutName": "Office Buddies",
+      "artifactName": "OfficeBuddies-Setup-${version}.exe"
     }
   },
   "dependencies": {

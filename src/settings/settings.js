@@ -302,6 +302,13 @@ function wireListeners() {
 // ── Historial de versiones ────────────────────────────────────────────────────
 const CHANGELOG = [
   {
+    version: '0.2.40',
+    date: '24 jun 2026',
+    changes: [
+      'Ahora nos llamamos Office Buddies 🐾 (mismo programa, nombre nuevo)',
+    ],
+  },
+  {
     version: '0.2.39',
     date: '20 jun 2026',
     changes: [
