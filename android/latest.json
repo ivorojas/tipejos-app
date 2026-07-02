@@ -1,6 +1,6 @@
 {
-  "versionCode": 3,
-  "versionName": "0.1.2",
-  "apkUrl": "https://github.com/ivorojas/tipejos-app/releases/download/android-v0.1.2/Tipejos-0.1.2.apk",
-  "notes": "El globo ahora sigue al personaje cuando se mueve. Nuevo slider para ajustar el tamaño del personaje."
+  "versionCode": 4,
+  "versionName": "0.1.3",
+  "apkUrl": "https://github.com/ivorojas/office-buddies/releases/download/android-v0.1.3/OfficeBuddies-0.1.3.apk",
+  "notes": "Ahora la app se llama Office Buddies."
 }

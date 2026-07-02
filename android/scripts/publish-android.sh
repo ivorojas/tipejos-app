@@ -15,7 +15,7 @@ NOTES="${2:-Nueva versión $VER}"
 
 export JAVA_HOME="C:\android-tools\jdk\jdk-17.0.19+10"
 GRADLE="/c/android-tools/gradle-dist/gradle-8.7/bin/gradle"
-REPO="ivorojas/tipejos-app"
+REPO="ivorojas/office-buddies"
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"      # carpeta android/
 GRADLE_FILE="$ROOT/app/build.gradle.kts"
 
@@ -30,17 +30,17 @@ echo "→ versionCode $CUR_CODE→$NEW_CODE, versionName $VER"
 echo "→ compilando release..."
 ( cd "$ROOT" && "$GRADLE" :app:assembleRelease --no-daemon --console=plain >/dev/null )
 APK_OUT="$ROOT/app/build/outputs/apk/release/app-release.apk"
-APK_NAMED="$ROOT/app/build/outputs/apk/release/Tipejos-$VER.apk"
+APK_NAMED="$ROOT/app/build/outputs/apk/release/OfficeBuddies-$VER.apk"
 cp "$APK_OUT" "$APK_NAMED"
 echo "→ APK: $APK_NAMED"
 
 # 3) GitHub release
 echo "→ publicando release android-v$VER..."
-gh release create "android-v$VER" "$APK_NAMED#Tipejos-$VER.apk" \
+gh release create "android-v$VER" "$APK_NAMED#OfficeBuddies-$VER.apk" \
   --repo "$REPO" --title "Android v$VER" --notes "$NOTES"
 
 # 4) actualizar latest.json y pushear
-APK_URL="https://github.com/$REPO/releases/download/android-v$VER/Tipejos-$VER.apk"
+APK_URL="https://github.com/$REPO/releases/download/android-v$VER/OfficeBuddies-$VER.apk"
 cat > "$ROOT/latest.json" <<JSON
 {
   "versionCode": $NEW_CODE,

@@ -374,7 +374,7 @@ class PetOverlayService : Service(), PetView.Callback {
     // ── Notificación ─────────────────────────────────────────────────────────
     private fun buildNotification(): Notification {
         val ch = NotificationChannel(
-            CHANNEL_ID, "Mascota Tipejos", NotificationManager.IMPORTANCE_LOW
+            CHANNEL_ID, "Mascota Office Buddies", NotificationManager.IMPORTANCE_LOW
         ).apply { description = "Mantiene viva a tu mascota flotante" }
         (getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager)
             .createNotificationChannel(ch)
@@ -385,7 +385,7 @@ class PetOverlayService : Service(), PetView.Callback {
             PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
         )
         return Notification.Builder(this, CHANNEL_ID)
-            .setContentTitle("Tipejos está dando vueltas 🐾")
+            .setContentTitle("Office Buddies está dando vueltas 🐾")
             .setContentText("Tocá para abrir y elegir personaje")
             .setSmallIcon(R.drawable.ic_pet)
             .setContentIntent(openApp)

@@ -24,7 +24,7 @@ object UpdateChecker {
 
     // latest.json vive en la rama android-mvp del repo público.
     private const val MANIFEST_URL =
-        "https://raw.githubusercontent.com/ivorojas/tipejos-app/android-mvp/android/latest.json"
+        "https://raw.githubusercontent.com/ivorojas/office-buddies/android-mvp/android/latest.json"
 
     data class Update(
         val versionCode: Int,
@@ -103,7 +103,7 @@ object UpdateChecker {
                     Uri.parse("package:${activity.packageName}")
                 )
             )
-            onError("Activá 'Instalar apps desconocidas' para Tipejos y reintentá la actualización.")
+            onError("Activá 'Instalar apps desconocidas' para Office Buddies y reintentá la actualización.")
             return
         }
         val uri = FileProvider.getUriForFile(activity, "${activity.packageName}.fileprovider", apk)

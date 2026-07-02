@@ -1,4 +1,4 @@
-# Tipejos — Android (MVP)
+# Office Buddies — Android (MVP)
 
 Mascota flotante que vive **encima de las demás apps** de Android, igual que la versión de escritorio pero nativa (Kotlin, sin Electron).
 
