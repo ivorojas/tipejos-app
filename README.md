@@ -1,10 +1,10 @@
-# Tipejos 🐾
+# Office Buddies 🐾
 
 Mascotas de escritorio con los clásicos asistentes de Microsoft Office
 (Clippy, Merlin, Rover, El Genio y muchos más). Flotan en tu pantalla,
 animan, reaccionan al mouse y te hacen compañía.
 
-**50 personajes** · Windows y Mac · se actualiza solo (Windows)
+**50 personajes** · Windows, Mac y Android · se actualiza solo
 
 ---
 
@@ -15,7 +15,7 @@ según tu sistema.
 
 ### 🪟 Windows
 
-1. Bajá **`Tipejos-Setup-x.x.x.exe`**
+1. Bajá **`OfficeBuddies-Setup-x.x.x.exe`**
 2. Doble clic → se instala solo y crea un acceso directo en el escritorio
 
 > Windows puede mostrar un aviso de "editor desconocido" (SmartScreen).
@@ -26,15 +26,15 @@ nueva, la app la baja y te pregunta si querés reiniciar para aplicarla.
 
 ### 🍎 Mac
 
-1. Bajá **`Tipejos-Mac-x.x.x.dmg`**
-2. Doble clic en el `.dmg` y **arrastrá Tipejos a la carpeta Aplicaciones**
+1. Bajá **`OfficeBuddies-Mac-x.x.x.dmg`**
+2. Doble clic en el `.dmg` y **arrastrá Office Buddies a la carpeta Aplicaciones**
 3. **La primera vez** (y solo la primera), macOS va a decir que la app es de
    un "desarrollador no identificado". Es normal: la app no está firmada
    (firmarla cuesta una cuenta de Apple paga). Para abrirla igual:
-   - **Clic derecho** sobre Tipejos → **Abrir** → en el cartel, **Abrir** de nuevo.
+   - **Clic derecho** sobre Office Buddies → **Abrir** → en el cartel, **Abrir** de nuevo.
    - Si tu Mac es nueva (macOS Sequoia o posterior) y no aparece la opción:
      andá a **Ajustes del Sistema → Privacidad y Seguridad**, bajá hasta el
-     aviso sobre Tipejos y tocá **"Abrir igualmente"**.
+     aviso sobre Office Buddies y tocá **"Abrir igualmente"**.
 
    Después de esa primera vez, abre normal con doble clic para siempre.
 
@@ -42,13 +42,19 @@ nueva, la app la baja y te pregunta si querés reiniciar para aplicarla.
 > una versión nueva, volvé a [Releases](../../releases/latest) y bajá el `.dmg`
 > nuevo. La app funciona igual de bien que en Windows.
 
+### 🤖 Android
+
+Puerto nativo (no Electron): la mascota flota sobre las demás apps del celular.
+Bajá el `.apk` desde [Releases](../../releases/latest) — ver [android/README.md](android/README.md)
+para la instalación y el detalle técnico.
+
 ## 🎮 Uso
 
 - **Doble clic en el ícono de la bandeja** (la flechita ▲ abajo a la derecha) → abre Ajustes
 - **Clic derecho en el muñeco** → cambiar personaje, agregar otro, salir
 - **Arrastrá** al muñeco para moverlo por la pantalla
-- En **Ajustes**: agregar varias mascotas, buscador de personajes,
-  tamaño / opacidad, sonido, comportamiento y arranque con Windows
+- En **Ajustes**: agregar varias mascotas, buscador de personajes, favoritos,
+  filtro de mensajes, tamaño / opacidad, sonido, comportamiento y arranque con Windows
 
 ## 🛠️ Desarrollo
 
